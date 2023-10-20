@@ -3,17 +3,18 @@ package services.manager;
 import models.business.Epic;
 import models.business.Subtask;
 import models.business.Task;
+import models.enums.TaskStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Manager {
+public class TaskManager {
     private final HashMap<Integer, Task> tasks;
     private final HashMap<Integer, Epic> epics;
     private final HashMap<Integer, Subtask> subtasks;
     private int currentTaskID;
 
-    public Manager() {
+    public TaskManager() {
         currentTaskID = 0;
         tasks = new HashMap<>();
         epics = new HashMap<>();
@@ -125,24 +126,24 @@ public class Manager {
         return subtasks;
     }
 
-    private String calculateEpicStatus(int epicID) {
+    private TaskStatus calculateEpicStatus(int epicID) {
         ArrayList<Subtask> subtasks = getEpicSubtasksByID(epicID);
 
-        if (subtasks.isEmpty()) return "NEW";
+        if (subtasks.isEmpty()) return TaskStatus.NEW;
 
         int newCount = 0;
         int doneCount = 0;
 
         for (Subtask subtask : subtasks) {
-            if (subtask.getStatus().equals("NEW")) newCount++;
-            else if (subtask.getStatus().equals("DONE")) doneCount++;
-            else return "IN_PROGRESS";
+            if (subtask.getStatus() == TaskStatus.NEW) newCount++;
+            else if (subtask.getStatus() == TaskStatus.DONE) doneCount++;
+            else return TaskStatus.IN_PROGRESS;
 
-            if (newCount != 0 && doneCount != 0) return "IN_PROGRESS";
+            if (newCount != 0 && doneCount != 0) return TaskStatus.IN_PROGRESS;
         }
 
-        if (newCount != 0) return "NEW";
-        else return "DONE";
+        if (newCount != 0) return TaskStatus.NEW;
+        else return TaskStatus.DONE;
     }
 
     @Override

@@ -1,25 +1,27 @@
 package models.business;
 
+import models.enums.TaskStatus;
+
 import java.util.Objects;
 
 public class Task {
     protected int id;
     protected String name;
     protected String description;
-    protected String status;
+    protected TaskStatus status;
 
-    public Task(int id, String name, String description, String status) {
+    public Task(int id, String name, String description, TaskStatus status) {
         this.name = name;
         this.description = description;
         this.id = id;
         this.status = status;
     }
 
-    public String getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 

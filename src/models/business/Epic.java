@@ -1,5 +1,7 @@
 package models.business;
 
+import models.enums.TaskStatus;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -8,7 +10,7 @@ public class Epic extends Task {
     private final List<Integer> subtasksIDs;
 
     public Epic(int id, String name, String description) {
-        super(id, name, description, "NEW");
+        super(id, name, description, TaskStatus.NEW);
         subtasksIDs = new ArrayList<>();
     }
 
