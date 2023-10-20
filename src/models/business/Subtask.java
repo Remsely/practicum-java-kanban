@@ -1,4 +1,4 @@
-package tasks;
+package models.business;
 
 import java.util.Objects;
 
@@ -31,7 +31,7 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return "tasks.Subtask{" +
+        return "models.business.Subtask{" +
                 "epicID=" + epicID +
                 ", id=" + id +
                 ", name='" + name + '\'' +

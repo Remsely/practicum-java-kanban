@@ -1,4 +1,4 @@
-package tasks;
+package models.business;
 
 import java.util.Objects;
 
@@ -47,7 +47,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "tasks.Task{" +
+        return "models.business.Task{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +

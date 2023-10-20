@@ -1,6 +1,7 @@
-import tasks.Epic;
-import tasks.Subtask;
-import tasks.Task;
+import models.business.Epic;
+import models.business.Subtask;
+import models.business.Task;
+import services.manager.Manager;
 
 public class Main {
     public static void main(String[] args) {

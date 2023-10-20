@@ -1,6 +1,8 @@
-import tasks.Epic;
-import tasks.Subtask;
-import tasks.Task;
+package services.manager;
+
+import models.business.Epic;
+import models.business.Subtask;
+import models.business.Task;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,16 +20,16 @@ public class Manager {
         subtasks = new HashMap<>();
     }
 
-    public HashMap<Integer, Task> getTasks() {
-        return tasks;
+    public ArrayList<Task> getTasks() {
+        return new ArrayList<>(tasks.values());
     }
 
-    public HashMap<Integer, Epic> getEpics() {
-        return epics;
+    public ArrayList<Epic> getEpics() {
+        return new ArrayList<>(epics.values());
     }
 
-    public HashMap<Integer, Subtask> getSubtasks() {
-        return subtasks;
+    public ArrayList<Subtask> getSubtasks() {
+        return new ArrayList<>(subtasks.values());
     }
 
     public void removeAllTasks() {
@@ -145,7 +147,7 @@ public class Manager {
 
     @Override
     public String toString() {
-        return "Manager {" + '\n' +
+        return "services.manager.Manager {" + '\n' +
                 "currentTaskID=" + currentTaskID + ",\n" +
                 "tasks=" + tasks + ",\n" +
                 "epics=" + epics + ",\n" +
