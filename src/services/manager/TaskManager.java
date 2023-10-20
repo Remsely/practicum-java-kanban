@@ -85,6 +85,10 @@ public class TaskManager {
         epic.setStatus(calculateEpicStatus(epicID));
     }
 
+    /* Про несуществующие задачи не совсем понял.
+     Единственный метод, где мы можем ввести несуществующий индекс - это этот, но здесь это учитывается.
+     В методах, в которых мы передаем объекты, у нас по ТЗ всегда вводится правильный индекс, это, я так понимаю,
+     нужно для дальнейшего расширения этого задания.*/
     public void removeTaskByID(int id) {
         if (tasks.containsKey(id)) {
             tasks.remove(id);
@@ -92,7 +96,15 @@ public class TaskManager {
             removeEpicByID(id);
         } else if (subtasks.containsKey(id)) {
             removeSubtaskByID(id);
+        } else {
+            printIndexErrorToConsole(id);
         }
+    }
+
+    private void printIndexErrorToConsole(int id) {
+        System.out.println("==================================================");
+        System.out.println("Попытка обращения к несущеcтвующему индексу: " + id + "!");
+        System.out.println("==================================================");
     }
 
     private void removeEpicByID(int id) {

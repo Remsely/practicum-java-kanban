@@ -43,5 +43,11 @@ public class Main {
         manager.removeTaskByID(6);
 
         System.out.println(manager);
+
+        manager.removeTaskByID(6);
+        manager.removeTaskByID(2);
+        manager.removeTaskByID(0);
+
+        System.out.println(manager);
     }
 }
