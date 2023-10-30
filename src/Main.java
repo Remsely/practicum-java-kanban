@@ -2,11 +2,11 @@ import models.business.Epic;
 import models.business.Subtask;
 import models.business.Task;
 import models.enums.TaskStatus;
-import services.manager.TaskManager;
+import services.manager.InMemoryTaskManager;
 
 public class Main {
     public static void main(String[] args) {
-        TaskManager manager = new TaskManager();
+        InMemoryTaskManager manager = new InMemoryTaskManager();
 
         manager.createTask(new Task(0, "Задача 1", "Описание задачи 1", TaskStatus.NEW));
         manager.createTask(new Task(1, "Задача 2", "Описание задачи 2", TaskStatus.NEW));
