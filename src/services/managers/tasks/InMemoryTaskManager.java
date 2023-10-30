@@ -1,9 +1,11 @@
-package services.manager;
+package services.managers.tasks;
 
 import models.business.Epic;
 import models.business.Subtask;
 import models.business.Task;
 import models.enums.TaskStatus;
+import services.managers.histories.HistoryManager;
+import services.managers.util.Managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +15,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasks;
     private final HashMap<Integer, Epic> epics;
     private final HashMap<Integer, Subtask> subtasks;
-    private final List<Task> history;
+    private final HistoryManager history;
     private int currentTaskID;
 
     public InMemoryTaskManager() {
@@ -21,7 +23,7 @@ public class InMemoryTaskManager implements TaskManager {
         tasks = new HashMap<>();
         epics = new HashMap<>();
         subtasks = new HashMap<>();
-        history = new ArrayList<>();
+        history = Managers.getDefaultHistory();
     }
 
     @Override
@@ -54,7 +56,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (task == null)
             printIndexErrorToConsole(id);
         else
-            addTaskToHistory(task);
+            history.add(task);
 
         return task;
     }
@@ -66,7 +68,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (epic == null)
             printIndexErrorToConsole(id);
         else
-            addTaskToHistory(epic);
+            history.add(epic);
 
         return epic;
     }
@@ -78,7 +80,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subtask == null)
             printIndexErrorToConsole(id);
         else
-            addTaskToHistory(subtask);
+            history.add(subtask);
 
         return subtask;
     }
@@ -134,16 +136,8 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    @Override
     public List<Task> getHistory() {
-        return history;
-    }
-
-    private void addTaskToHistory(Task task) {
-        if (history.size() == 10)
-            history.remove(0);
-
-        history.add(task);
+        return history.getHistory();
     }
 
     private void printIndexErrorToConsole(int id) {

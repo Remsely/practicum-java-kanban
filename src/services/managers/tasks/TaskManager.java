@@ -1,11 +1,10 @@
-package services.manager;
+package services.managers.tasks;
 
 import models.business.Epic;
 import models.business.Subtask;
 import models.business.Task;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public interface TaskManager {
     ArrayList<Task> getTasks();
@@ -14,7 +13,7 @@ public interface TaskManager {
 
     ArrayList<Subtask> getSubtasks();
 
-    public void removeAllTasks();
+    void removeAllTasks();
 
     Task getTaskByID(int id);
 
@@ -33,6 +32,4 @@ public interface TaskManager {
     void updateTask(Subtask subtask);
 
     void removeTaskByID(int id);
-
-    List<Task> getHistory();
 }
