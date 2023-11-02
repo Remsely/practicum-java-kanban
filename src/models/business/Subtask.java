@@ -33,7 +33,7 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return "models.business.Subtask{" +
+        return "Subtask{" +
                 "epicID=" + epicID +
                 ", id=" + id +
                 ", name='" + name + '\'' +

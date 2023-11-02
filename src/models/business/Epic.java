@@ -14,9 +14,6 @@ public class Epic extends Task {
         subtasksIDs = new ArrayList<>();
     }
 
-    /* Насколько я понял, List - это общий интерфейс, который может реализовываться различными списками.
-     Его лучше использовать для того, чтобы создавать гибкость в программе?
-     Например, при необходимости кастить его в LinkedList после того, как его вернул метод?*/
     public List<Integer> getSubtasksIDs() {
         return subtasksIDs;
     }
@@ -45,7 +42,7 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return "models.business.Epic{" +
+        return "Epic{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +

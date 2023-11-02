@@ -49,7 +49,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "models.business.Task{" +
+        return "Task{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +

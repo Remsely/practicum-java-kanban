@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/*Решил сделать логи при помощи System.out.println в самих методах.
+Как правильно делать логи и их типы, я так понимаю мы будем проходить потом.*/
+
 public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasks;
     private final HashMap<Integer, Epic> epics;
@@ -28,29 +31,50 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Task> getTasks() {
-        return new ArrayList<>(tasks.values());
+        System.out.println("\nПолучение списка задач Task...");
+
+        List<Task> tasksList = new ArrayList<>(tasks.values());
+
+        System.out.println(tasksList + "\n");
+
+        return tasksList;
     }
 
     @Override
     public List<Epic> getEpics() {
-        return new ArrayList<>(epics.values());
+        System.out.println("\nПолучение списка задач Epic...");
+
+        List<Epic> epicsList = new ArrayList<>(epics.values());
+
+        System.out.println(epicsList + "\n");
+
+        return epicsList;
     }
 
     @Override
     public List<Subtask> getSubtasks() {
-        return new ArrayList<>(subtasks.values());
+        System.out.println("\nПолучение списка задач Subtask...");
+
+        List<Subtask> subtasksList = new ArrayList<>(subtasks.values());
+
+        System.out.println(subtasksList + "\n");
+
+        return subtasksList;
     }
 
     @Override
     public void removeAllTasks() {
+        System.out.println("\nУдаление всех задач...");
         tasks.clear();
         epics.clear();
         subtasks.clear();
         currentTaskID = 0;
+        System.out.println("Удаление завершено!\n");
     }
 
     @Override
     public Task getTaskByID(int id) {
+        System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
         Task task = tasks.getOrDefault(id, null);
 
         if (task == null)
@@ -58,11 +82,13 @@ public class InMemoryTaskManager implements TaskManager {
         else
             history.add(task);
 
+        System.out.println(task + "\n");
         return task;
     }
 
     @Override
     public Epic getEpicByID(int id) {
+        System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
         Epic epic = epics.getOrDefault(id, null);
 
         if (epic == null)
@@ -70,11 +96,13 @@ public class InMemoryTaskManager implements TaskManager {
         else
             history.add(epic);
 
+        System.out.println(epic + "\n");
         return epic;
     }
 
     @Override
     public Subtask getSubtaskByID(int id) {
+        System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
         Subtask subtask = subtasks.getOrDefault(id, null);
 
         if (subtask == null)
@@ -82,17 +110,24 @@ public class InMemoryTaskManager implements TaskManager {
         else
             history.add(subtask);
 
+        System.out.println(subtask + "\n");
         return subtask;
     }
 
     @Override
     public void createTask(Task task) {
+        System.out.println("\nСоздание задачи...");
+
         task.setId(currentTaskID);
         tasks.put(currentTaskID++, task);
+
+        System.out.println(task + "\n");
     }
 
     @Override
     public void createTask(Subtask subtask) {
+        System.out.println("\nСоздание задачи...");
+
         int epicID = subtask.getEpicID();
         Epic epic = epics.get(epicID);
 
@@ -101,30 +136,44 @@ public class InMemoryTaskManager implements TaskManager {
 
         epic.addSubtaskID(subtask.getId());
         epic.setStatus(calculateEpicStatus(epicID));
+
+        System.out.println(subtask + "\n");
     }
 
     @Override
     public void createTask(Epic epic) {
+        System.out.println("\nСоздание задачи...");
+
         epic.setId(currentTaskID);
         epics.put(currentTaskID++, epic);
+
+        System.out.println(epic + "\n");
     }
 
     @Override
     public void updateTask(Task task) {
+        System.out.println("\nОбновление задачи (id = " + task.getId() + ")...");
         tasks.put(task.getId(), task);
+        System.out.println(task + "\n");
     }
 
     @Override
     public void updateTask(Subtask subtask) {
+        System.out.println("\nОбновление задачи (id = " + subtask.getId() + ")...");
+
         int epicID = subtask.getEpicID();
         Epic epic = epics.get(epicID);
 
         subtasks.put(subtask.getId(), subtask);
         epic.setStatus(calculateEpicStatus(epicID));
+
+        System.out.println(subtask + "\n");
     }
 
     @Override
     public void removeTaskByID(int id) {
+        System.out.println("\nУдаление задачи (id = " + id + ")...");
+
         if (tasks.containsKey(id)) {
             tasks.remove(id);
         } else if (epics.containsKey(id)) {
@@ -133,18 +182,25 @@ public class InMemoryTaskManager implements TaskManager {
             removeSubtaskByID(id);
         } else {
             printIndexErrorToConsole(id);
+            return;
         }
+        System.out.println("Задача удалена успешно!\n");
     }
 
     @Override
     public List<Task> getHistory() {
-        return history.getHistory();
+        System.out.println("\nПолучение истории обращения к задачам...");
+
+        List<Task> currentHistory = history.getHistory();
+        System.out.println(currentHistory);
+
+        return currentHistory;
     }
 
     private void printIndexErrorToConsole(int id) {
-        System.out.println("==================================================");
-        System.out.println("Попытка обращения к несущеcтвующему индексу: " + id + "!");
-        System.out.println("==================================================");
+        System.out.println("========================================================");
+        System.out.println("Ошибка! Попытка обращения к несущеcтвующему индексу: " + id + "!");
+        System.out.println("========================================================\n");
     }
 
     private void removeEpicByID(int id) {
@@ -200,11 +256,12 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public String toString() {
-        return "services.manager.Manager {" + '\n' +
+        return "\nТекущее состояние Manager:\n" +
+                "InMemoryTaskManager {" + '\n' +
                 "currentTaskID=" + currentTaskID + ",\n" +
                 "tasks=" + tasks + ",\n" +
                 "epics=" + epics + ",\n" +
                 "subtasks=" + subtasks + '\n' +
-                '}';
+                "}\n";
     }
 }
