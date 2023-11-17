@@ -11,9 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-/*Решил сделать логи при помощи System.out.println в самих методах.
-Как правильно делать логи и их типы, я так понимаю мы будем проходить потом.*/
-
 public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasks;
     private final HashMap<Integer, Epic> epics;
@@ -176,6 +173,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         if (tasks.containsKey(id)) {
             tasks.remove(id);
+            history.remove(id);
         } else if (epics.containsKey(id)) {
             removeEpicByID(id);
         } else if (subtasks.containsKey(id)) {
@@ -184,6 +182,7 @@ public class InMemoryTaskManager implements TaskManager {
             printIndexErrorToConsole(id);
             return;
         }
+
         System.out.println("Задача удалена успешно!\n");
     }
 
@@ -192,7 +191,7 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("\nПолучение истории обращения к задачам...");
 
         List<Task> currentHistory = history.getHistory();
-        System.out.println(currentHistory);
+        System.out.println(currentHistory + "\n");
 
         return currentHistory;
     }
@@ -206,10 +205,36 @@ public class InMemoryTaskManager implements TaskManager {
     private void removeEpicByID(int id) {
         Epic epic = epics.get(id);
 
-        for (Integer subtaskID : epic.getSubtasksIDs())
-            subtasks.remove(subtaskID);
+        for (Integer subtaskID : epic.getSubtasksIDs()) {
+            /*
+            Я пытался тут вызвать removeSubtaskByID(subtaskID), чтобы не прописывать еще раз history.remove(subtaskID),
+            но получил исключение ConcurrentModificationException. Если честно еще ни разу не видел такой ошибки...
 
-        epics.remove(id);
+            Подробнее:
+            Exception in thread "main" java.util.ConcurrentModificationException
+	            at java.base/java.util.ArrayList$Itr.checkForComodification(ArrayList.java:1043)
+	            at java.base/java.util.ArrayList$Itr.next(ArrayList.java:997)
+	            at services.managers.tasks.InMemoryTaskManager.removeEpicByID(InMemoryTaskManager.java:208)
+	            at services.managers.tasks.InMemoryTaskManager.removeTaskByID(InMemoryTaskManager.java:178)
+	            at Main.main(Main.java:45)
+
+	        Ошибка происходит в этом методе класса ArrayList:
+	        final void checkForComodification() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            }
+
+            Насколько я понял, ArrayList запрещает 2 одновременные модификации, чтобы в разных методах не было
+            расхождений по работе со списком.
+            Я вызываю метод getSubtasksIDs() в строках 208 и 250. В данном случае одновременное обращение к списку
+            не должно вызывать никаких ошибок, но правило ArrayList от этого не меняется.
+
+            Хочется понять, прав ли я, и можно ли это как-нибудь обойти?
+            */
+            subtasks.remove(subtaskID);
+            history.remove(subtaskID);
+        }
+        history.remove(id);
     }
 
     private void removeSubtaskByID(int id) {
@@ -218,6 +243,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         epic.removeSubtask(id);
         subtasks.remove(id);
+        history.remove(id);
 
         if (epic.getSubtasksIDs().isEmpty())
             epics.remove(epicID);
