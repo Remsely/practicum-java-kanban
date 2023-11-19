@@ -5,7 +5,7 @@ import models.business.Task;
 import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    CustomLinkedList history;
+    private final CustomLinkedList history;
 
     public InMemoryHistoryManager() {
         history = new CustomLinkedList();
@@ -34,7 +34,9 @@ public class InMemoryHistoryManager implements HistoryManager {
         void linkLast(Task task) {
             final Node l = tail;
             final Node newNode = new Node(l, task, null);
+
             tail = newNode;
+
             if (l == null)
                 head = newNode;
             else
@@ -47,6 +49,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         List<Task> getTasks() {
             List<Task> tasksList = new ArrayList<>();
             Node currentNode = head;
+
             while (currentNode != null) {
                 tasksList.add(currentNode.data);
                 currentNode = currentNode.next;

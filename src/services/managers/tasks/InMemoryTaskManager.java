@@ -10,11 +10,12 @@ import services.managers.util.Managers;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final HashMap<Integer, Task> tasks;
-    private final HashMap<Integer, Epic> epics;
-    private final HashMap<Integer, Subtask> subtasks;
+    private final Map<Integer, Task> tasks;
+    private final Map<Integer, Epic> epics;
+    private final Map<Integer, Subtask> subtasks;
     private final HistoryManager history;
     private int currentTaskID;
 
@@ -206,31 +207,6 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.get(id);
 
         for (Integer subtaskID : epic.getSubtasksIDs()) {
-            /*
-            Я пытался тут вызвать removeSubtaskByID(subtaskID), чтобы не прописывать еще раз history.remove(subtaskID),
-            но получил исключение ConcurrentModificationException. Если честно еще ни разу не видел такой ошибки...
-
-            Подробнее:
-            Exception in thread "main" java.util.ConcurrentModificationException
-	            at java.base/java.util.ArrayList$Itr.checkForComodification(ArrayList.java:1043)
-	            at java.base/java.util.ArrayList$Itr.next(ArrayList.java:997)
-	            at services.managers.tasks.InMemoryTaskManager.removeEpicByID(InMemoryTaskManager.java:208)
-	            at services.managers.tasks.InMemoryTaskManager.removeTaskByID(InMemoryTaskManager.java:178)
-	            at Main.main(Main.java:45)
-
-	        Ошибка происходит в этом методе класса ArrayList:
-	        final void checkForComodification() {
-            if (modCount != expectedModCount)
-                throw new ConcurrentModificationException();
-            }
-
-            Насколько я понял, ArrayList запрещает 2 одновременные модификации, чтобы в разных методах не было
-            расхождений по работе со списком.
-            Я вызываю метод getSubtasksIDs() в строках 208 и 250. В данном случае одновременное обращение к списку
-            не должно вызывать никаких ошибок, но правило ArrayList от этого не меняется.
-
-            Хочется понять, прав ли я, и можно ли это как-нибудь обойти?
-            */
             subtasks.remove(subtaskID);
             history.remove(subtaskID);
         }
