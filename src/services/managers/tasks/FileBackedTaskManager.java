@@ -5,12 +5,14 @@ import models.business.Subtask;
 import models.business.Task;
 import models.enums.TaskStatus;
 import models.enums.TaskTypes;
+import services.managers.histories.HistoryManager;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.*;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final Path path;
@@ -22,27 +24,70 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     public static void main(String[] args) {
-        FileBackedTaskManager manager = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
+        FileBackedTaskManager manager1 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
 
-        manager.createTask(new Task(0, "Задача 0", "Описание задачи0", TaskStatus.NEW));
-        manager.createTask(new Task(1, "Задача 1", "Описание задачи 1", TaskStatus.NEW));
+        manager1.createTask(new Task(0, "Task 0", "Description 0", TaskStatus.NEW));
+        manager1.createTask(new Task(1, "Task 1", "Description 1", TaskStatus.IN_PROGRESS));
+        manager1.createTask(new Task(2, "Task 2", "Description 2", TaskStatus.NEW));
 
-        manager.createTask(new Epic(2, "Эпик 2", "Описание эпика 2"));
-        manager.createTask(new Subtask(2, 3, "Подзадача 3", "Описание подзадачи 3", TaskStatus.NEW));
-        manager.createTask(new Subtask(2, 4, "Подзадача 4", "Описание подзадачи 4", TaskStatus.NEW));
-        manager.createTask(new Subtask(2, 5, "Подзадача 5", "Описание подзадачи 5", TaskStatus.NEW));
+        manager1.createTask(new Epic(3, "Epic 3", "Description 3"));
+        manager1.createTask(new Epic(4, "Epic 4", "Description 4"));
 
-        System.out.println(manager);
+        manager1.createTask(new Subtask(3, 5, "Subtask 5", "Description 5", TaskStatus.NEW));
+        manager1.createTask(new Subtask(3, 6, "Subtask 6", "Description 6", TaskStatus.IN_PROGRESS));
+        manager1.createTask(new Subtask(4, 7, "Subtask 7", "Description 7", TaskStatus.NEW));
+
+        manager1.getSubtaskByID(5);
+        manager1.getSubtaskByID(6);
+        manager1.getSubtaskByID(7);
+        manager1.getSubtaskByID(5);
+
+        manager1.getTaskByID(0);
+        manager1.getTaskByID(1);
+
+        System.out.println(manager1);
+
+        TaskManager manager2 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
+
+        System.out.println(manager2);
+
+        manager2.getTaskByID(0);
+        manager2.getEpicByID(3);
+
+        System.out.println(manager2);
+
+        TaskManager manager3 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
+
+        System.out.println(manager3);
+
+        TaskManager manager4 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
+
+        System.out.println(manager4);
     }
 
     private void backupAll() {
         try {
             String[] fileLines = readFile().split("\n");
 
-            for (String line : fileLines) {
-                createTaskFromCSV(line);
-            }
+            /*
+            Задачи нужно сортировать, т. к. если хранить их по типам, то новые задачи будут добавляться в конец
+            определенной категории задач, => они будут созданы в неправильном порядке при следующем создании менеджера,
+            и у Subtask и Epic слетят связи по id.
+            Я решил, что лучше сортировать их здесь, а хранить их по категориям, т. к. этот метод вызывается 1 раз
+            при создании объекта, а метод save отрабатывает при каждом изменении в менеджере.
+            Еще можно придумать, как создавать задачи с определенным id, но это слишком долго, и тогда нет смысла
+            наследовать это класс от InMemoryTaskManager. Хотя, может, я и не прав...
+            */
 
+            if (fileLines.length > 2) {
+                String[] tasks = Arrays.copyOfRange(fileLines, 1, fileLines.length - 2);
+                Arrays.sort(tasks, Comparator.comparingInt(s -> Integer.parseInt(s.split(",")[0])));
+
+                for (String line : tasks) {
+                    createTaskFromCSV(line);
+                }
+                createHistoryFromCSV(fileLines[fileLines.length - 1]);
+            }
 
         } catch (IOException e) {
             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -50,8 +95,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
         } catch (NullPointerException e) {
             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            System.out.println("Файла по пути " + path.toString() + "не существует!");
-            System.out.println("Программой был создан пустой файл!");
+            System.out.println("Файл по пути " + path.toString() + " не найден!");
+            System.out.println("Программой был создан пустой файл.");
             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
     }
@@ -61,7 +106,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try {
             content = Files.readString(path);
         } catch (IOException e) {
-            Files.createFile(path);
+            save();
         }
         return content;
     }
@@ -118,7 +163,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             for (Subtask subtask : subtasks.values())
                 writeLineToFile(convertToCSV(subtask), fileWriter);
 
-            fileWriter.write("");
+            fileWriter.write("\n");
+            fileWriter.write(HistoryManager.historyToCSV(history));
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -153,6 +200,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     break;
             }
         }
+    }
+
+    private void createHistoryFromCSV(String csv) {
+        List<Integer> historyItemsIDs = HistoryManager.historyFromCSV(csv);
+
+        for (Integer id : historyItemsIDs) {
+            if (tasks.containsKey(id))
+                history.add(tasks.get(id));
+            else if (epics.containsKey(id))
+                history.add(epics.get(id));
+            else if (subtasks.containsKey(id))
+                history.add(subtasks.get(id));
+        }
+        save();
     }
 
     @Override

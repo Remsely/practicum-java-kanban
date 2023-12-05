@@ -264,7 +264,7 @@ public class InMemoryTaskManager implements TaskManager {
                 "tasks=" + tasks + ",\n" +
                 "epics=" + epics + ",\n" +
                 "subtasks=" + subtasks + '\n' +
-                "history=" + history + "\n" +
+                "history=[" + HistoryManager.historyToCSV(history) + "]\n" +
                 "}\n";
     }
 }
