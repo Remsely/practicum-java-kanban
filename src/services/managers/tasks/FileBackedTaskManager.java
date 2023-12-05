@@ -5,6 +5,7 @@ import models.business.Subtask;
 import models.business.Task;
 import models.enums.TaskStatus;
 import models.enums.TaskTypes;
+import services.managers.exceptions.ManagerSaveException;
 import services.managers.histories.HistoryManager;
 
 import java.io.FileWriter;
@@ -12,7 +13,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final Path path;
@@ -63,157 +66,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         TaskManager manager4 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
 
         System.out.println(manager4);
-    }
-
-    private void backupAll() {
-        try {
-            String[] fileLines = readFile().split("\n");
-
-            /*
-            Задачи нужно сортировать, т. к. если хранить их по типам, то новые задачи будут добавляться в конец
-            определенной категории задач, => они будут созданы в неправильном порядке при следующем создании менеджера,
-            и у Subtask и Epic слетят связи по id.
-            Я решил, что лучше сортировать их здесь, а хранить их по категориям, т. к. этот метод вызывается 1 раз
-            при создании объекта, а метод save отрабатывает при каждом изменении в менеджере.
-            Еще можно придумать, как создавать задачи с определенным id, но это слишком долго, и тогда нет смысла
-            наследовать это класс от InMemoryTaskManager. Хотя, может, я и не прав...
-            */
-
-            if (fileLines.length > 2) {
-                String[] tasks = Arrays.copyOfRange(fileLines, 1, fileLines.length - 2);
-                Arrays.sort(tasks, Comparator.comparingInt(s -> Integer.parseInt(s.split(",")[0])));
-
-                for (String line : tasks) {
-                    createTaskFromCSV(line);
-                }
-                createHistoryFromCSV(fileLines[fileLines.length - 1]);
-            }
-
-        } catch (IOException e) {
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            System.out.println("ОШИБКА ПРИ РАБОТЕ С ФАЙЛОМ!");
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-        } catch (NullPointerException e) {
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            System.out.println("Файл по пути " + path.toString() + " не найден!");
-            System.out.println("Программой был создан пустой файл.");
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        }
-    }
-
-    private String readFile() throws IOException {
-        String content = null;
-        try {
-            content = Files.readString(path);
-        } catch (IOException e) {
-            save();
-        }
-        return content;
-    }
-
-    private String convertToCSV(Task task) {
-        return String.format("%d,%s,%s,%s,%s,",
-                task.getId(),
-                TaskTypes.TASK,
-                task.getName(),
-                task.getStatus(),
-                task.getDescription()
-        );
-    }
-
-    private String convertToCSV(Subtask subtask) {
-        return String.format("%d,%s,%s,%s,%s,%d",
-                subtask.getId(),
-                TaskTypes.SUBTASK,
-                subtask.getName(),
-                subtask.getStatus(),
-                subtask.getDescription(),
-                subtask.getEpicID()
-        );
-    }
-
-    private String convertToCSV(Epic epic) {
-        return String.format("%d,%s,%s,%s,%s,",
-                epic.getId(),
-                TaskTypes.EPIC,
-                epic.getName(),
-                epic.getStatus(),
-                epic.getDescription()
-        );
-    }
-
-    private String getAttrs() {
-        return "id,type,name,status,description,epic";
-    }
-
-    private void writeLineToFile(String line, Writer fileWriter) throws IOException {
-        fileWriter.write(line + "\n");
-    }
-
-    private void save() {
-        try (Writer fileWriter = new FileWriter(path.toFile())) {
-            writeLineToFile(getAttrs(), fileWriter);
-
-            for (Task task : tasks.values())
-                writeLineToFile(convertToCSV(task), fileWriter);
-
-            for (Epic epic : epics.values())
-                writeLineToFile(convertToCSV(epic), fileWriter);
-
-            for (Subtask subtask : subtasks.values())
-                writeLineToFile(convertToCSV(subtask), fileWriter);
-
-            fileWriter.write("\n");
-            fileWriter.write(HistoryManager.historyToCSV(history));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void createTaskFromCSV(String csv) {
-        if (!csv.isBlank()) {
-            String[] csvItems = csv.split(",");
-
-            int id;
-            try {
-                id = Integer.parseInt(csvItems[0]);
-            } catch (NumberFormatException e) {
-                return;
-            }
-
-            TaskTypes type = TaskTypes.valueOf(csvItems[1]);
-            String name = csvItems[2];
-            TaskStatus status = TaskStatus.valueOf(csvItems[3]);
-            String description = csvItems[4];
-            int epicId = csvItems.length > 5 ? Integer.parseInt(csvItems[5]) : -1;
-
-            switch (type) {
-                case EPIC:
-                    createTask(new Epic(id, name, description));
-                    break;
-                case TASK:
-                    createTask(new Task(id, name, description, status));
-                    break;
-                case SUBTASK:
-                    createTask(new Subtask(epicId, id, name, description, status));
-                    break;
-            }
-        }
-    }
-
-    private void createHistoryFromCSV(String csv) {
-        List<Integer> historyItemsIDs = HistoryManager.historyFromCSV(csv);
-
-        for (Integer id : historyItemsIDs) {
-            if (tasks.containsKey(id))
-                history.add(tasks.get(id));
-            else if (epics.containsKey(id))
-                history.add(epics.get(id));
-            else if (subtasks.containsKey(id))
-                history.add(subtasks.get(id));
-        }
-        save();
     }
 
     @Override
@@ -277,5 +129,156 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public void removeTaskByID(int id) {
         super.removeTaskByID(id);
         save();
+    }
+
+    private void backupAll() {
+        try {
+            String[] fileLines = readFile().split("\n");
+
+            /*
+            Задачи нужно сортировать, т. к. если хранить их по типам, то новые задачи будут добавляться в конец
+            определенной категории задач, => они будут созданы в неправильном порядке при следующем создании менеджера,
+            и у Subtask и Epic слетят связи по id.
+            Я решил, что лучше сортировать их здесь, а хранить их по категориям, т. к. этот метод вызывается 1 раз
+            при создании объекта, а метод save отрабатывает при каждом изменении в менеджере.
+            Еще можно придумать, как создавать задачи с определенным id, но это слишком долго, и тогда нет смысла
+            наследовать это класс от InMemoryTaskManager. Хотя, может, я и не прав...
+            */
+
+            if (fileLines.length > 2) {
+                String[] tasks = Arrays.copyOfRange(fileLines, 1, fileLines.length - 2);
+                Arrays.sort(tasks, Comparator.comparingInt(s -> Integer.parseInt(s.split(",")[0])));
+
+                for (String line : tasks) {
+                    createTaskFromCSV(line);
+                }
+                createHistoryFromCSV(fileLines[fileLines.length - 1]);
+            }
+
+        } catch (IOException e) {
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            System.out.println("ОШИБКА ПРИ РАБОТЕ С ФАЙЛОМ!");
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+        } catch (NullPointerException e) {
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            System.out.println("Файл по пути " + path.toString() + " не найден!");
+            System.out.println("Программой был создан пустой файл.");
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+        }
+    }
+
+    private String readFile() throws IOException {
+        String content = null;
+        try {
+            content = Files.readString(path);
+        } catch (IOException e) {
+            save();
+        }
+        return content;
+    }
+
+    private void createTaskFromCSV(String csv) {
+        if (!csv.isBlank()) {
+            String[] csvItems = csv.split(",");
+
+            int id;
+            try {
+                id = Integer.parseInt(csvItems[0]);
+            } catch (NumberFormatException e) {
+                return;
+            }
+
+            TaskTypes type = TaskTypes.valueOf(csvItems[1]);
+            String name = csvItems[2];
+            TaskStatus status = TaskStatus.valueOf(csvItems[3]);
+            String description = csvItems[4];
+            int epicId = csvItems.length > 5 ? Integer.parseInt(csvItems[5]) : -1;
+
+            switch (type) {
+                case EPIC:
+                    createTask(new Epic(id, name, description));
+                    break;
+                case TASK:
+                    createTask(new Task(id, name, description, status));
+                    break;
+                case SUBTASK:
+                    createTask(new Subtask(epicId, id, name, description, status));
+                    break;
+            }
+        }
+    }
+
+    private void createHistoryFromCSV(String csv) {
+        List<Integer> historyItemsIDs = HistoryManager.historyFromCSV(csv);
+
+        for (Integer id : historyItemsIDs) {
+            if (tasks.containsKey(id))
+                history.add(tasks.get(id));
+            else if (epics.containsKey(id))
+                history.add(epics.get(id));
+            else if (subtasks.containsKey(id))
+                history.add(subtasks.get(id));
+        }
+        save();
+    }
+
+    private void save() {
+        try (Writer fileWriter = new FileWriter(path.toFile())) {
+            writeLineToFile(getAttrs(), fileWriter);
+
+            for (Task task : tasks.values())
+                writeLineToFile(convertToCSV(task), fileWriter);
+
+            for (Epic epic : epics.values())
+                writeLineToFile(convertToCSV(epic), fileWriter);
+
+            for (Subtask subtask : subtasks.values())
+                writeLineToFile(convertToCSV(subtask), fileWriter);
+
+            fileWriter.write("\n");
+            fileWriter.write(HistoryManager.historyToCSV(history));
+
+        } catch (IOException e) {
+            throw new ManagerSaveException(e.getMessage());
+        }
+    }
+
+    private void writeLineToFile(String line, Writer fileWriter) throws IOException {
+        fileWriter.write(line + "\n");
+    }
+
+    private String convertToCSV(Task task) {
+        return String.format("%d,%s,%s,%s,%s,",
+                task.getId(),
+                TaskTypes.TASK,
+                task.getName(),
+                task.getStatus(),
+                task.getDescription()
+        );
+    }
+
+    private String convertToCSV(Subtask subtask) {
+        return String.format("%d,%s,%s,%s,%s,%d",
+                subtask.getId(),
+                TaskTypes.SUBTASK,
+                subtask.getName(),
+                subtask.getStatus(),
+                subtask.getDescription(),
+                subtask.getEpicID()
+        );
+    }
+
+    private String convertToCSV(Epic epic) {
+        return String.format("%d,%s,%s,%s,%s,",
+                epic.getId(),
+                TaskTypes.EPIC,
+                epic.getName(),
+                epic.getStatus(),
+                epic.getDescription()
+        );
+    }
+
+    private String getAttrs() {
+        return "id,type,name,status,description,epic";
     }
 }
