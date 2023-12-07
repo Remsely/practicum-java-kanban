@@ -4,7 +4,6 @@ import models.business.Epic;
 import models.business.Subtask;
 import models.business.Task;
 import models.enums.TaskStatus;
-import models.enums.TaskTypes;
 import services.managers.exceptions.BackupFileReceivingException;
 import services.managers.exceptions.ManagerSaveException;
 import services.managers.util.CSVFiles;
@@ -143,10 +142,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 Arrays.sort(tasks, Comparator.comparingInt(s -> Integer.parseInt(s.split(",")[0])));
 
                 for (String line : tasks)
-                    createTaskFromCSV(line);
+                    backupTask(CSVFiles.taskFromCSV(line));
 
                 currentTaskID = Integer.parseInt(tasks[tasks.length - 1].split(",")[0]) + 1;
-                createHistoryFromCSV(fileLines[fileLines.length - 1]);
+                createBackedHistory(fileLines[fileLines.length - 1]);
+
+                save();
             }
         } catch (BackupFileReceivingException e) {
             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -167,42 +168,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return content;
     }
 
-    private void createTaskFromCSV(String csv) {
-        if (!csv.isBlank()) {
-            String[] csvItems = csv.split(",");
-
-            int id;
-            try {
-                id = Integer.parseInt(csvItems[0]);
-            } catch (NumberFormatException e) {
-                return;
-            }
-
-            TaskTypes type = TaskTypes.valueOf(csvItems[1]);
-            String name = csvItems[2];
-            TaskStatus status = TaskStatus.valueOf(csvItems[3]);
-            String description = csvItems[4];
-            int epicId = csvItems.length > 5 ? Integer.parseInt(csvItems[5]) : -1;
-
-            switch (type) {
-                case EPIC:
-                    backupTask(new Epic(id, name, description));
-                    break;
-                case TASK:
-                    backupTask(new Task(id, name, description, status));
-                    break;
-                case SUBTASK:
-                    backupTask(new Subtask(epicId, id, name, description, status));
-                    break;
-            }
+    private void backupTask(Task task) {
+        if (task != null) {
+            if (task instanceof Epic)
+                createBackedTask((Epic) task);
+            else if (task instanceof Subtask)
+                createBackedTask((Subtask) task);
+            else
+                createBackedTask(task);
         }
     }
 
-    private void backupTask(Task task) {
+    private void createBackedTask(Task task) {
         tasks.put(task.getId(), task);
     }
 
-    private void backupTask(Subtask subtask) {
+    private void createBackedTask(Subtask subtask) {
         subtasks.put(subtask.getId(), subtask);
 
         int epicID = subtask.getEpicID();
@@ -212,11 +193,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         epic.setStatus(calculateEpicStatus(epicID));
     }
 
-    private void backupTask(Epic epic) {
+    private void createBackedTask(Epic epic) {
         epics.put(epic.getId(), epic);
     }
 
-    private void createHistoryFromCSV(String csv) {
+    private void createBackedHistory(String csv) {
         List<Integer> historyItemsIDs = CSVFiles.historyFromCSV(csv);
 
         for (Integer id : historyItemsIDs) {
@@ -227,21 +208,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             else if (subtasks.containsKey(id))
                 history.add(subtasks.get(id));
         }
-        save();
     }
 
     private void save() {
         try (Writer fileWriter = new FileWriter(path.toFile())) {
-            writeLineToFile(CSVFiles.getAttrs(), fileWriter);
+            writeLineToFile(CSVFiles.getCSVAttrs(), fileWriter);
 
             for (Task task : tasks.values())
-                writeLineToFile(CSVFiles.convertToCSV(task), fileWriter);
+                writeLineToFile(CSVFiles.taskToCSV(task), fileWriter);
 
             for (Epic epic : epics.values())
-                writeLineToFile(CSVFiles.convertToCSV(epic), fileWriter);
+                writeLineToFile(CSVFiles.taskToCSV(epic), fileWriter);
 
             for (Subtask subtask : subtasks.values())
-                writeLineToFile(CSVFiles.convertToCSV(subtask), fileWriter);
+                writeLineToFile(CSVFiles.taskToCSV(subtask), fileWriter);
 
             fileWriter.write("\n");
             fileWriter.write(CSVFiles.historyToCSV(history));

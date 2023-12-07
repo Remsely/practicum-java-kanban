@@ -3,6 +3,7 @@ package services.managers.util;
 import models.business.Epic;
 import models.business.Subtask;
 import models.business.Task;
+import models.enums.TaskStatus;
 import models.enums.TaskTypes;
 import services.managers.histories.HistoryManager;
 
@@ -21,6 +22,29 @@ public class CSVFiles {
         return history;
     }
 
+    public static Task taskFromCSV(String csv) {
+        if (!csv.isBlank()) {
+            String[] csvItems = csv.split(",");
+
+            int id = Integer.parseInt(csvItems[0]);
+            TaskTypes type = TaskTypes.valueOf(csvItems[1]);
+            String name = csvItems[2];
+            TaskStatus status = TaskStatus.valueOf(csvItems[3]);
+            String description = csvItems[4];
+            int epicId = csvItems.length > 5 ? Integer.parseInt(csvItems[5]) : -1;
+
+            switch (type) {
+                case EPIC:
+                    return new Epic(id, name, description);
+                case SUBTASK:
+                    return new Subtask(epicId, id, name, description, status);
+                case TASK:
+                    return new Task(id, name, description, status);
+            }
+        }
+        return null;
+    }
+
     public static String historyToCSV(HistoryManager manager) {
         StringBuilder historyCSV = new StringBuilder();
 
@@ -35,7 +59,7 @@ public class CSVFiles {
         return historyCSV.toString();
     }
 
-    public static String convertToCSV(Task task) {
+    public static String taskToCSV(Task task) {
         return String.format("%d,%s,%s,%s,%s,",
                 task.getId(),
                 TaskTypes.TASK,
@@ -45,7 +69,7 @@ public class CSVFiles {
         );
     }
 
-    public static String convertToCSV(Subtask subtask) {
+    public static String taskToCSV(Subtask subtask) {
         return String.format("%d,%s,%s,%s,%s,%d",
                 subtask.getId(),
                 TaskTypes.SUBTASK,
@@ -56,7 +80,7 @@ public class CSVFiles {
         );
     }
 
-    public static String convertToCSV(Epic epic) {
+    public static String taskToCSV(Epic epic) {
         return String.format("%d,%s,%s,%s,%s,",
                 epic.getId(),
                 TaskTypes.EPIC,
@@ -66,7 +90,7 @@ public class CSVFiles {
         );
     }
 
-    public static String getAttrs() {
+    public static String getCSVAttrs() {
         return "id,type,name,status,description,epic";
     }
 }
