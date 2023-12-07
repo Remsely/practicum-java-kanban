@@ -5,6 +5,7 @@ import models.business.Subtask;
 import models.business.Task;
 import models.enums.TaskStatus;
 import services.managers.histories.HistoryManager;
+import services.managers.util.CSVFiles;
 import services.managers.util.Managers;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Epic> epics;
     protected final Map<Integer, Subtask> subtasks;
     protected final HistoryManager history;
-    private int currentTaskID;
+    protected int currentTaskID;
 
     public InMemoryTaskManager() {
         currentTaskID = 0;
@@ -236,7 +237,7 @@ public class InMemoryTaskManager implements TaskManager {
         return subtasks;
     }
 
-    private TaskStatus calculateEpicStatus(int epicID) {
+    protected TaskStatus calculateEpicStatus(int epicID) {
         ArrayList<Subtask> subtasks = getEpicSubtasksByID(epicID);
 
         if (subtasks.isEmpty()) return TaskStatus.NEW;
@@ -264,7 +265,7 @@ public class InMemoryTaskManager implements TaskManager {
                 "tasks=" + tasks + ",\n" +
                 "epics=" + epics + ",\n" +
                 "subtasks=" + subtasks + '\n' +
-                "history=[" + HistoryManager.historyToCSV(history) + "]\n" +
+                "history=[" + CSVFiles.historyToCSV(history) + "]\n" +
                 "}\n";
     }
 }

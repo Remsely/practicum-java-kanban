@@ -5,8 +5,9 @@ import models.business.Subtask;
 import models.business.Task;
 import models.enums.TaskStatus;
 import models.enums.TaskTypes;
+import services.managers.exceptions.BackupFileReceivingException;
 import services.managers.exceptions.ManagerSaveException;
-import services.managers.histories.HistoryManager;
+import services.managers.util.CSVFiles;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -27,7 +28,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     public static void main(String[] args) {
-        FileBackedTaskManager manager1 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
+        TaskManager manager1 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
 
         manager1.createTask(new Task(0, "Task 0", "Description 0", TaskStatus.NEW));
         manager1.createTask(new Task(1, "Task 1", "Description 1", TaskStatus.IN_PROGRESS));
@@ -44,7 +45,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         manager1.getSubtaskByID(6);
         manager1.getSubtaskByID(7);
         manager1.getSubtaskByID(5);
-
         manager1.getTaskByID(0);
         manager1.getTaskByID(1);
 
@@ -56,6 +56,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         manager2.getTaskByID(0);
         manager2.getEpicByID(3);
+
+        manager2.removeTaskByID(0);
+        manager2.removeTaskByID(1);
 
         System.out.println(manager2);
 
@@ -135,31 +138,17 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try {
             String[] fileLines = readFile().split("\n");
 
-            /*
-            Задачи нужно сортировать, т. к. если хранить их по типам, то новые задачи будут добавляться в конец
-            определенной категории задач, => они будут созданы в неправильном порядке при следующем создании менеджера,
-            и у Subtask и Epic слетят связи по id.
-            Я решил, что лучше сортировать их здесь, а хранить их по категориям, т. к. этот метод вызывается 1 раз
-            при создании объекта, а метод save отрабатывает при каждом изменении в менеджере.
-            Еще можно придумать, как создавать задачи с определенным id, но это слишком долго, и тогда нет смысла
-            наследовать это класс от InMemoryTaskManager. Хотя, может, я и не прав...
-            */
-
             if (fileLines.length > 2) {
                 String[] tasks = Arrays.copyOfRange(fileLines, 1, fileLines.length - 2);
                 Arrays.sort(tasks, Comparator.comparingInt(s -> Integer.parseInt(s.split(",")[0])));
 
-                for (String line : tasks) {
+                for (String line : tasks)
                     createTaskFromCSV(line);
-                }
+
+                currentTaskID = Integer.parseInt(tasks[tasks.length - 1].split(",")[0]) + 1;
                 createHistoryFromCSV(fileLines[fileLines.length - 1]);
             }
-
-        } catch (IOException e) {
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            System.out.println("ОШИБКА ПРИ РАБОТЕ С ФАЙЛОМ!");
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-        } catch (NullPointerException e) {
+        } catch (BackupFileReceivingException e) {
             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             System.out.println("Файл по пути " + path.toString() + " не найден!");
             System.out.println("Программой был создан пустой файл.");
@@ -167,12 +156,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    private String readFile() throws IOException {
-        String content = null;
+    private String readFile() throws BackupFileReceivingException {
+        String content;
         try {
             content = Files.readString(path);
         } catch (IOException e) {
             save();
+            throw new BackupFileReceivingException(e.getMessage());
         }
         return content;
     }
@@ -196,20 +186,38 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
             switch (type) {
                 case EPIC:
-                    createTask(new Epic(id, name, description));
+                    backupTask(new Epic(id, name, description));
                     break;
                 case TASK:
-                    createTask(new Task(id, name, description, status));
+                    backupTask(new Task(id, name, description, status));
                     break;
                 case SUBTASK:
-                    createTask(new Subtask(epicId, id, name, description, status));
+                    backupTask(new Subtask(epicId, id, name, description, status));
                     break;
             }
         }
     }
 
+    private void backupTask(Task task) {
+        tasks.put(task.getId(), task);
+    }
+
+    private void backupTask(Subtask subtask) {
+        subtasks.put(subtask.getId(), subtask);
+
+        int epicID = subtask.getEpicID();
+        Epic epic = epics.get(epicID);
+
+        epic.addSubtaskID(subtask.getId());
+        epic.setStatus(calculateEpicStatus(epicID));
+    }
+
+    private void backupTask(Epic epic) {
+        epics.put(epic.getId(), epic);
+    }
+
     private void createHistoryFromCSV(String csv) {
-        List<Integer> historyItemsIDs = HistoryManager.historyFromCSV(csv);
+        List<Integer> historyItemsIDs = CSVFiles.historyFromCSV(csv);
 
         for (Integer id : historyItemsIDs) {
             if (tasks.containsKey(id))
@@ -224,19 +232,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void save() {
         try (Writer fileWriter = new FileWriter(path.toFile())) {
-            writeLineToFile(getAttrs(), fileWriter);
+            writeLineToFile(CSVFiles.getAttrs(), fileWriter);
 
             for (Task task : tasks.values())
-                writeLineToFile(convertToCSV(task), fileWriter);
+                writeLineToFile(CSVFiles.convertToCSV(task), fileWriter);
 
             for (Epic epic : epics.values())
-                writeLineToFile(convertToCSV(epic), fileWriter);
+                writeLineToFile(CSVFiles.convertToCSV(epic), fileWriter);
 
             for (Subtask subtask : subtasks.values())
-                writeLineToFile(convertToCSV(subtask), fileWriter);
+                writeLineToFile(CSVFiles.convertToCSV(subtask), fileWriter);
 
             fileWriter.write("\n");
-            fileWriter.write(HistoryManager.historyToCSV(history));
+            fileWriter.write(CSVFiles.historyToCSV(history));
 
         } catch (IOException e) {
             throw new ManagerSaveException(e.getMessage());
@@ -245,40 +253,5 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void writeLineToFile(String line, Writer fileWriter) throws IOException {
         fileWriter.write(line + "\n");
-    }
-
-    private String convertToCSV(Task task) {
-        return String.format("%d,%s,%s,%s,%s,",
-                task.getId(),
-                TaskTypes.TASK,
-                task.getName(),
-                task.getStatus(),
-                task.getDescription()
-        );
-    }
-
-    private String convertToCSV(Subtask subtask) {
-        return String.format("%d,%s,%s,%s,%s,%d",
-                subtask.getId(),
-                TaskTypes.SUBTASK,
-                subtask.getName(),
-                subtask.getStatus(),
-                subtask.getDescription(),
-                subtask.getEpicID()
-        );
-    }
-
-    private String convertToCSV(Epic epic) {
-        return String.format("%d,%s,%s,%s,%s,",
-                epic.getId(),
-                TaskTypes.EPIC,
-                epic.getName(),
-                epic.getStatus(),
-                epic.getDescription()
-        );
-    }
-
-    private String getAttrs() {
-        return "id,type,name,status,description,epic";
     }
 }
