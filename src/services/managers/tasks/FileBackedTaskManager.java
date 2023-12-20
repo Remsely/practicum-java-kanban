@@ -29,11 +29,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public static void main(String[] args) {
         TaskManager manager1 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
 
-        manager1.createTask(new Task( "Task 0", "Description 0", TaskStatus.NEW));
+        manager1.createTask(new Task("Task 0", "Description 0", TaskStatus.NEW));
         manager1.createTask(new Task("Task 1", "Description 1", TaskStatus.IN_PROGRESS));
         manager1.createTask(new Task("Task 2", "Description 2", TaskStatus.NEW));
 
-        manager1.createTask(new Epic( "Epic 3", "Description 3"));
+        manager1.createTask(new Epic("Epic 3", "Description 3"));
         manager1.createTask(new Epic("Epic 4", "Description 4"));
 
         manager1.createTask(new Subtask(3, "Subtask 5", "Description 5", TaskStatus.NEW));
@@ -119,17 +119,17 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public int updateTask(Task task) {
-        int id = super.updateTask(task);
+    public boolean updateTask(int id, Task task) {
+        boolean isUpdated = super.updateTask(id, task);
         save();
-        return id;
+        return isUpdated;
     }
 
     @Override
-    public int updateTask(Subtask subtask) {
-        int id = super.updateTask(subtask);
+    public boolean updateTask(int id, Subtask subtask) {
+        boolean isUpdated = super.updateTask(id, subtask);
         save();
-        return id;
+        return isUpdated;
     }
 
     @Override

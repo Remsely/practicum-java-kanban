@@ -27,9 +27,9 @@ public interface TaskManager {
 
     int createTask(Epic epic);
 
-    int updateTask(Task task);
+    boolean updateTask(int id, Task task);
 
-    int updateTask(Subtask subtask);
+    boolean updateTask(int id, Subtask subtask);
 
     boolean removeTaskByID(int id);
 

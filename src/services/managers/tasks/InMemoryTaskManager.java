@@ -153,25 +153,33 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int updateTask(Task task) {
-        System.out.println("\nОбновление задачи (id = " + task.getId() + ")...");
-        tasks.put(task.getId(), task);
-        System.out.println(task + "\n");
-        return task.getId();
+    public boolean updateTask(int id, Task task) {
+        if (tasks.containsKey(id)) {
+            System.out.println("\nОбновление задачи (id = " + id + ")...");
+            task.setId(id);
+            tasks.put(id, task);
+            System.out.println(task + "\n");
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public int updateTask(Subtask subtask) {
-        System.out.println("\nОбновление задачи (id = " + subtask.getId() + ")...");
+    public boolean updateTask(int id, Subtask subtask) {
+        if (subtasks.containsKey(id)) {
+            System.out.println("\nОбновление задачи (id = " + id + ")...");
 
-        int epicID = subtask.getEpicID();
-        Epic epic = epics.get(epicID);
+            int epicID = subtask.getEpicID();
+            Epic epic = epics.get(epicID);
 
-        subtasks.put(subtask.getId(), subtask);
-        epic.setStatus(calculateEpicStatus(epicID));
+            subtask.setId(id);
+            subtasks.put(id, subtask);
+            epic.setStatus(calculateEpicStatus(epicID));
 
-        System.out.println(subtask + "\n");
-        return subtask.getId();
+            System.out.println(subtask + "\n");
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -217,6 +225,7 @@ public class InMemoryTaskManager implements TaskManager {
             subtasks.remove(subtaskID);
             history.remove(subtaskID);
         }
+        epics.remove(id);
         history.remove(id);
     }
 
