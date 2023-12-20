@@ -63,6 +63,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         TaskManager manager3 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
 
+        manager3.removeAllTasks();
+
         System.out.println(manager3);
 
         TaskManager manager4 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
@@ -150,10 +152,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 for (String line : tasks)
                     backupTask(CSVFiles.taskFromCSV(line));
 
-                currentTaskID = Integer.parseInt(tasks[tasks.length - 1].split(",")[0]) + 1;
+                if (tasks.length > 0)
+                    currentTaskID = Integer.parseInt(tasks[tasks.length - 1].split(",")[0]) + 1;
+
                 createBackedHistory(fileLines[fileLines.length - 1]);
 
                 save();
+            } else if (fileLines.length == 2) {
+                backupTask(CSVFiles.taskFromCSV(fileLines[1]));
             }
         } catch (BackupFileReceivingException e) {
             System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!");

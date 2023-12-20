@@ -64,10 +64,15 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeAllTasks() {
         System.out.println("\nУдаление всех задач...");
+
         tasks.clear();
         epics.clear();
         subtasks.clear();
         currentTaskID = 0;
+
+        for (Task task : history.getHistory())
+            history.remove(task.getId());
+
         System.out.println("Удаление завершено!\n");
     }
 

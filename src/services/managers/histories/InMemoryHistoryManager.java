@@ -12,8 +12,8 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
-    public void remove(int id) {
-        history.removeNode(id);
+    public boolean remove(int id) {
+        return history.removeNode(id);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class InMemoryHistoryManager implements HistoryManager {
             return tasksList;
         }
 
-        void removeNode(int taskId) {
+        boolean removeNode(int taskId) {
             if (nodeTable.containsKey(taskId)) {
                 Node oldNode = nodeTable.get(taskId);
 
@@ -77,7 +77,9 @@ public class InMemoryHistoryManager implements HistoryManager {
                     oldNodeNext.prev = oldNodePrev;
 
                 nodeTable.remove(taskId);
+                return true;
             }
+            return false;
         }
 
         private static class Node {
