@@ -27,7 +27,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     public static void main(String[] args) {
-        TaskManager manager1 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
+        TaskManager manager1 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
 
         manager1.createTask(new Task(0, "Task 0", "Description 0", TaskStatus.NEW));
         manager1.createTask(new Task(1, "Task 1", "Description 1", TaskStatus.IN_PROGRESS));
@@ -49,7 +49,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         System.out.println(manager1);
 
-        TaskManager manager2 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
+        TaskManager manager2 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
 
         System.out.println(manager2);
 
@@ -61,11 +61,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         System.out.println(manager2);
 
-        TaskManager manager3 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
+        TaskManager manager3 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
 
         System.out.println(manager3);
 
-        TaskManager manager4 = new FileBackedTaskManager("src/backup/text_files/test_manager.txt");
+        TaskManager manager4 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
 
         System.out.println(manager4);
     }
