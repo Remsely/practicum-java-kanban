@@ -7,8 +7,8 @@ import java.util.Objects;
 public class Subtask extends Task {
     private final int epicID;
 
-    public Subtask(int epicID, int id, String name, String description, TaskStatus status) {
-        super(id, name, description, status);
+    public Subtask(int epicID, String name, String description, TaskStatus status) {
+        super(name, description, status);
         this.epicID = epicID;
     }
 

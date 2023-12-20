@@ -21,17 +21,17 @@ public interface TaskManager {
 
     Subtask getSubtaskByID(int id);
 
-    void createTask(Task task);
+    int createTask(Task task);
 
-    void createTask(Subtask subtask);
+    int createTask(Subtask subtask);
 
-    void createTask(Epic epic);
+    int createTask(Epic epic);
 
-    void updateTask(Task task);
+    int updateTask(Task task);
 
-    void updateTask(Subtask subtask);
+    int updateTask(Subtask subtask);
 
-    void removeTaskByID(int id);
+    boolean removeTaskByID(int id);
 
     List<Task> getHistory();
 }

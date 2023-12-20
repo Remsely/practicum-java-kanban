@@ -1,10 +1,14 @@
 package services.managers.tasks;
 
+import models.business.Task;
+import models.enums.TaskStatus;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 abstract class TaskManagerTest<T extends TaskManager> {
+    protected T manager;
+
     @Test
     void getTasks() {
     }

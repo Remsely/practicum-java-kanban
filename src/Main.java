@@ -9,15 +9,15 @@ public class Main {
     public static void main(String[] args) {
         TaskManager manager = Managers.getDefault();
 
-        manager.createTask(new Task(0, "Задача 1", "Описание задачи 1", TaskStatus.NEW));
-        manager.createTask(new Task(1, "Задача 2", "Описание задачи 2", TaskStatus.NEW));
+        manager.createTask(new Task("Задача 1", "Описание задачи 1", TaskStatus.NEW));
+        manager.createTask(new Task("Задача 2", "Описание задачи 2", TaskStatus.NEW));
 
-        manager.createTask(new Epic(2, "Эпик 1", "Описание эпика 1"));
-        manager.createTask(new Subtask(2, 3, "Подзадача 1", "Описание подзадачи 1", TaskStatus.NEW));
-        manager.createTask(new Subtask(2, 4, "Подзадача 2", "Описание подзадачи 2", TaskStatus.NEW));
-        manager.createTask(new Subtask(2, 5, "Подзадача 3", "Описание подзадачи 3", TaskStatus.NEW));
+        manager.createTask(new Epic("Эпик 1", "Описание эпика 1"));
+        manager.createTask(new Subtask(2, "Подзадача 1", "Описание подзадачи 1", TaskStatus.NEW));
+        manager.createTask(new Subtask(2, "Подзадача 2", "Описание подзадачи 2", TaskStatus.NEW));
+        manager.createTask(new Subtask(2, "Подзадача 3", "Описание подзадачи 3", TaskStatus.NEW));
 
-        manager.createTask(new Epic(6, "Эпик 2", "Описание эпика 2"));
+        manager.createTask(new Epic("Эпик 2", "Описание эпика 2"));
 
         System.out.println(manager);
 

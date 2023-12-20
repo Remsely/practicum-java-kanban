@@ -114,17 +114,18 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void createTask(Task task) {
+    public int createTask(Task task) {
         System.out.println("\nСоздание задачи...");
 
         task.setId(currentTaskID);
         tasks.put(currentTaskID++, task);
 
         System.out.println(task + "\n");
+        return task.getId();
     }
 
     @Override
-    public void createTask(Subtask subtask) {
+    public int createTask(Subtask subtask) {
         System.out.println("\nСоздание задачи...");
 
         int epicID = subtask.getEpicID();
@@ -137,27 +138,30 @@ public class InMemoryTaskManager implements TaskManager {
         epic.setStatus(calculateEpicStatus(epicID));
 
         System.out.println(subtask + "\n");
+        return subtask.getId();
     }
 
     @Override
-    public void createTask(Epic epic) {
+    public int createTask(Epic epic) {
         System.out.println("\nСоздание задачи...");
 
         epic.setId(currentTaskID);
         epics.put(currentTaskID++, epic);
 
         System.out.println(epic + "\n");
+        return epic.getId();
     }
 
     @Override
-    public void updateTask(Task task) {
+    public int updateTask(Task task) {
         System.out.println("\nОбновление задачи (id = " + task.getId() + ")...");
         tasks.put(task.getId(), task);
         System.out.println(task + "\n");
+        return task.getId();
     }
 
     @Override
-    public void updateTask(Subtask subtask) {
+    public int updateTask(Subtask subtask) {
         System.out.println("\nОбновление задачи (id = " + subtask.getId() + ")...");
 
         int epicID = subtask.getEpicID();
@@ -167,10 +171,11 @@ public class InMemoryTaskManager implements TaskManager {
         epic.setStatus(calculateEpicStatus(epicID));
 
         System.out.println(subtask + "\n");
+        return subtask.getId();
     }
 
     @Override
-    public void removeTaskByID(int id) {
+    public boolean removeTaskByID(int id) {
         System.out.println("\nУдаление задачи (id = " + id + ")...");
 
         if (tasks.containsKey(id)) {
@@ -182,10 +187,11 @@ public class InMemoryTaskManager implements TaskManager {
             removeSubtaskByID(id);
         } else {
             printIndexErrorToConsole(id);
-            return;
+            return false;
         }
 
         System.out.println("Задача удалена успешно!\n");
+        return true;
     }
 
     @Override

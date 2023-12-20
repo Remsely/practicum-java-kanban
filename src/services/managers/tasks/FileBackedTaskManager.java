@@ -29,16 +29,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public static void main(String[] args) {
         TaskManager manager1 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
 
-        manager1.createTask(new Task(0, "Task 0", "Description 0", TaskStatus.NEW));
-        manager1.createTask(new Task(1, "Task 1", "Description 1", TaskStatus.IN_PROGRESS));
-        manager1.createTask(new Task(2, "Task 2", "Description 2", TaskStatus.NEW));
+        manager1.createTask(new Task( "Task 0", "Description 0", TaskStatus.NEW));
+        manager1.createTask(new Task("Task 1", "Description 1", TaskStatus.IN_PROGRESS));
+        manager1.createTask(new Task("Task 2", "Description 2", TaskStatus.NEW));
 
-        manager1.createTask(new Epic(3, "Epic 3", "Description 3"));
-        manager1.createTask(new Epic(4, "Epic 4", "Description 4"));
+        manager1.createTask(new Epic( "Epic 3", "Description 3"));
+        manager1.createTask(new Epic("Epic 4", "Description 4"));
 
-        manager1.createTask(new Subtask(3, 5, "Subtask 5", "Description 5", TaskStatus.NEW));
-        manager1.createTask(new Subtask(3, 6, "Subtask 6", "Description 6", TaskStatus.IN_PROGRESS));
-        manager1.createTask(new Subtask(4, 7, "Subtask 7", "Description 7", TaskStatus.NEW));
+        manager1.createTask(new Subtask(3, "Subtask 5", "Description 5", TaskStatus.NEW));
+        manager1.createTask(new Subtask(3, "Subtask 6", "Description 6", TaskStatus.IN_PROGRESS));
+        manager1.createTask(new Subtask(4, "Subtask 7", "Description 7", TaskStatus.NEW));
 
         manager1.getSubtaskByID(5);
         manager1.getSubtaskByID(6);
@@ -98,39 +98,45 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void createTask(Task task) {
-        super.createTask(task);
+    public int createTask(Task task) {
+        int id = super.createTask(task);
         save();
+        return id;
     }
 
     @Override
-    public void createTask(Subtask subtask) {
-        super.createTask(subtask);
+    public int createTask(Subtask subtask) {
+        int id = super.createTask(subtask);
         save();
+        return id;
     }
 
     @Override
-    public void createTask(Epic epic) {
-        super.createTask(epic);
+    public int createTask(Epic epic) {
+        int id = super.createTask(epic);
         save();
+        return id;
     }
 
     @Override
-    public void updateTask(Task task) {
-        super.updateTask(task);
+    public int updateTask(Task task) {
+        int id = super.updateTask(task);
         save();
+        return id;
     }
 
     @Override
-    public void updateTask(Subtask subtask) {
-        super.updateTask(subtask);
+    public int updateTask(Subtask subtask) {
+        int id = super.updateTask(subtask);
         save();
+        return id;
     }
 
     @Override
-    public void removeTaskByID(int id) {
-        super.removeTaskByID(id);
+    public boolean removeTaskByID(int id) {
+        boolean isDeleted = super.removeTaskByID(id);
         save();
+        return isDeleted;
     }
 
     private void backupAll() {
