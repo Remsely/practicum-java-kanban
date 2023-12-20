@@ -35,11 +35,17 @@ public class CSVFiles {
 
             switch (type) {
                 case EPIC:
-                    return new Epic(id, name, description);
+                    Epic epic = new Epic(name, description);
+                    epic.setId(id);
+                    return epic;
                 case SUBTASK:
-                    return new Subtask(epicId, id, name, description, status);
+                    Subtask subtask = new Subtask(epicId, name, description, status);
+                    subtask.setId(id);
+                    return subtask;
                 case TASK:
-                    return new Task(id, name, description, status);
+                    Task task = new Task(name, description, status);
+                    task.setId(id);
+                    return task;
             }
         }
         return null;
