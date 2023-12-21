@@ -6,6 +6,7 @@ import models.business.Task;
 import models.enums.TaskStatus;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,7 +17,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldReturnCorrectListWhenTasksAreExist() {
         Task task = new Task("Task 1", "Description 1", TaskStatus.NEW);
-
         manager.createTask(task);
 
         final List<Task> gottenTasks = manager.getTasks();
@@ -37,7 +37,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldReturnCorrectListWhenEpicsAreExist() {
         Epic epic = new Epic("Epic 1", "Description 1");
-
         manager.createTask(epic);
 
         final List<Epic> gottenTasks = manager.getEpics();
@@ -82,6 +81,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     void shouldRemoveAllTasksSubtasksEndEpics() {
         Task task = new Task("Task 1", "Description 1", TaskStatus.NEW);
         Epic epic = new Epic("Epic 1", "Description 1");
+
         final int epicId = manager.createTask(epic);
         manager.createTask(task);
 
@@ -117,7 +117,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldReturnNullWhenTaskIsNotExist() {
         final Task gottenTask = manager.getTaskByID(1);
-
         assertNull(gottenTask, "Задача возвращается.");
     }
 
@@ -135,7 +134,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldReturnNullWhenEpicIsNotExist() {
         final Epic gottedEpic = manager.getEpicByID(1);
-
         assertNull(gottedEpic, "Эпик возвращается.");
     }
 
@@ -156,14 +154,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void shouldNotCreateSubtaskIfEpicIsNotExist() {
         Subtask subtask = new Subtask(1, "Subtask 1", "Description 1", TaskStatus.NEW);
-
         assertThrows(NullPointerException.class, () -> manager.createTask(subtask));
     }
 
     @Test
     void shouldReturnNullWhenSubtaskIsNotExist() {
         Subtask gottenSubtask = manager.getSubtaskByID(1);
-
         assertNull(gottenSubtask, "Подзадача возвращается.");
     }
 
@@ -338,5 +334,88 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         TaskStatus epicStatus = manager.getEpicByID(epicId).getStatus();
         assertEquals(TaskStatus.IN_PROGRESS, epicStatus, "Неверный статус эпика.");
+    }
+
+    @Test
+    public void shouldNotChangeTimeWithoutUpdate() {
+        final int taskId = manager.createTask(new Task("Task 1", "Description 1", TaskStatus.NEW));
+        Task task = manager.getTaskByID(taskId);
+
+        task.setStartTime(LocalDateTime.now());
+        task.setDuration(60);
+
+        assertNotEquals(task, manager.getTaskByID(taskId), "Задача изменилась.");
+    }
+
+    @Test
+    public void shouldChangeTimeOnUpdate() {
+        final int taskId = manager.createTask(new Task("Task 1", "Description 1", TaskStatus.NEW));
+        Task task = manager.getTaskByID(taskId);
+
+        task.setStartTime(LocalDateTime.now());
+        task.setDuration(60);
+
+        manager.updateTask(taskId, task);
+
+        assertEquals(task, manager.getTaskByID(taskId), "Задача не изменилась.");
+    }
+
+    @Test
+    public void epicShouldBeWithoutTimeIfEmpty() {
+        final int epicId = manager.createTask(new Epic("Epic 1", "Description 1"));
+        Epic epic = manager.getEpicByID(epicId);
+
+        assertEquals(0, epic.getSubtasksIDs().size(), "Эпик не пуст.");
+        assertNull(epic.getStartTime(), "Время начала эпика не пустое.");
+        assertEquals(0, epic.getDuration(), "Продолжительность эпика не равна 0.");
+        assertNull(epic.getEndTime(), "Время завершения эпика не пустое.");
+    }
+
+    @Test
+    public void epicShouldCalculateTimesCorrectly() {
+        final int epicId = manager.createTask(new Epic("Epic 1", "Description 1"));
+
+        Subtask subtask1 = new Subtask(epicId, "Subtask 1", "Description", TaskStatus.NEW);
+        final int subtask1Id = manager.createTask(subtask1);
+
+        Epic epic = manager.getEpicByID(epicId);
+
+        assertNull(epic.getStartTime(), "Времена начала эпика не пустое.");
+        assertEquals(0, epic.getDuration(), "Продолжительности эпика не равна 0.");
+        assertNull(epic.getEndTime(), "Времена завершения эпика не пустое.");
+
+        subtask1 = manager.getSubtaskByID(subtask1Id);
+        subtask1.setStartTime(LocalDateTime.now());
+        subtask1.setDuration(60);
+        manager.updateTask(subtask1Id, subtask1);
+
+        epic = manager.getEpicByID(epicId);
+
+        assertEquals(subtask1.getStartTime(), epic.getStartTime(), "Времена начала эпика и подзадачи не совпадают.");
+        assertEquals(subtask1.getDuration(), epic.getDuration(), "Продолжительности эпика и подзадачи не совпадают.");
+        assertEquals(subtask1.getEndTime(), epic.getEndTime(), "Времена завершения эпика и подзадачи не совпадают.");
+
+        Subtask subtask2 = new Subtask(epicId, "Subtask 2", "Description", TaskStatus.NEW);
+        subtask2.setStartTime(LocalDateTime.now().plusHours(2));
+        subtask2.setDuration(60);
+        manager.createTask(subtask2);
+
+        epic = manager.getEpicByID(epicId);
+
+        assertEquals(
+                subtask1.getStartTime(),
+                epic.getStartTime(),
+                "Времена начала эпика и первой подзадачи не совпадают."
+        );
+        assertEquals(
+                subtask1.getDuration() + subtask2.getDuration(),
+                epic.getDuration(),
+                "Продолжительности эпика и подзадач не совпадают."
+        );
+        assertEquals(
+                subtask2.getEndTime(),
+                epic.getEndTime(),
+                "Времена завершения эпика и последней подзадачи не совпадают."
+        );
     }
 }

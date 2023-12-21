@@ -3,7 +3,6 @@ package services.managers.tasks;
 import models.business.Epic;
 import models.business.Subtask;
 import models.business.Task;
-import models.enums.TaskStatus;
 import services.managers.exceptions.BackupFileReceivingException;
 import services.managers.exceptions.ManagerSaveException;
 import services.managers.util.CSVFiles;
@@ -24,52 +23,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super();
         this.path = Path.of(path);
         backupAll();
-    }
-
-    public static void main(String[] args) {
-        TaskManager manager1 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
-
-        manager1.createTask(new Task("Task 0", "Description 0", TaskStatus.NEW));
-        manager1.createTask(new Task("Task 1", "Description 1", TaskStatus.IN_PROGRESS));
-        manager1.createTask(new Task("Task 2", "Description 2", TaskStatus.NEW));
-
-        manager1.createTask(new Epic("Epic 3", "Description 3"));
-        manager1.createTask(new Epic("Epic 4", "Description 4"));
-
-        manager1.createTask(new Subtask(3, "Subtask 5", "Description 5", TaskStatus.NEW));
-        manager1.createTask(new Subtask(3, "Subtask 6", "Description 6", TaskStatus.IN_PROGRESS));
-        manager1.createTask(new Subtask(4, "Subtask 7", "Description 7", TaskStatus.NEW));
-
-        manager1.getSubtaskByID(5);
-        manager1.getSubtaskByID(6);
-        manager1.getSubtaskByID(7);
-        manager1.getSubtaskByID(5);
-        manager1.getTaskByID(0);
-        manager1.getTaskByID(1);
-
-        System.out.println(manager1);
-
-        TaskManager manager2 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
-
-        System.out.println(manager2);
-
-        manager2.getTaskByID(0);
-        manager2.getEpicByID(3);
-
-        manager2.removeTaskByID(0);
-        manager2.removeTaskByID(1);
-
-        System.out.println(manager2);
-
-        TaskManager manager3 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
-
-        manager3.removeAllTasks();
-
-        System.out.println(manager3);
-
-        TaskManager manager4 = new FileBackedTaskManager("src/backup/text_files/test_manager.csv");
-
-        System.out.println(manager4);
     }
 
     @Override

@@ -13,7 +13,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
-    private static final String FILE_PATH = "test/text_files/test_manager.csv";
+    private static final String FILE_PATH = "test/backup/csv/test_manager.csv";
 
     @BeforeEach
     public void initManager() {
