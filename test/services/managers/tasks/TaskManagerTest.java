@@ -474,4 +474,96 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         assertEquals(0, prioritizedList.size(), "Неправильная длинна списка.");
     }
+
+    @Test
+    public void shouldAddTaskIfThereIsNotIntersectedInTime() {
+        Task task1 = new Task("Task 1", "Description", TaskStatus.NEW);
+        task1.setStartTime(LocalDateTime.now());
+        task1.setDuration(60);
+
+        int task1Id = manager.createTask(task1);
+        assertNotEquals(-1, task1Id, "Задача не добавляется.");
+
+        Task task2 = new Task("Task 2", "Description", TaskStatus.NEW);
+        task2.setStartTime(task1.getEndTime());
+        task2.setDuration(60);
+
+        int task2Id = manager.createTask(task2);
+        assertNotEquals(-1, task2Id, "Задача не добавляется.");
+
+        Task task3 = new Task("Task 3", "Description", TaskStatus.NEW);
+        task3.setStartTime(task1.getStartTime().minusHours(1));
+        task3.setDuration(60);
+
+        int task3Id = manager.createTask(task3);
+        assertNotEquals(-1, task3Id, "Задача не добавляется.");
+
+        int task4Id = manager.createTask(new Task("Task 4", "Description", TaskStatus.NEW));
+        assertNotEquals(-1, task4Id, "Задача не добавляется.");
+    }
+
+    @Test
+    public void shouldNotAddTaskIfStartTimeIntersected() {
+        Task task1 = new Task("Task 1", "Description", TaskStatus.NEW);
+        task1.setStartTime(LocalDateTime.now());
+        task1.setDuration(60);
+
+        manager.createTask(task1);
+
+        Task task2 = new Task("Task 2", "Description", TaskStatus.NEW);
+        task2.setStartTime(task1.getStartTime().plusMinutes(30));
+        task2.setDuration(60);
+
+        int task2Id = manager.createTask(task2);
+        assertEquals(-1, task2Id, "Задача добавляется.");
+    }
+
+    @Test
+    public void shouldNotAddTaskIfEndTimeIntersected() {
+        Task task1 = new Task("Task 1", "Description", TaskStatus.NEW);
+        task1.setStartTime(LocalDateTime.now());
+        task1.setDuration(60);
+
+        manager.createTask(task1);
+
+        Task task2 = new Task("Task 2", "Description", TaskStatus.NEW);
+        task2.setStartTime(task1.getStartTime().minusMinutes(30));
+        task2.setDuration(60);
+
+        int task2Id = manager.createTask(task2);
+        assertEquals(-1, task2Id, "Задача добавляется.");
+    }
+
+    @Test
+    public void shouldNotAddTaskIfStartTimeAndEndTimeIntersected() {
+        Task task1 = new Task("Task 1", "Description", TaskStatus.NEW);
+        task1.setStartTime(LocalDateTime.now());
+        task1.setDuration(60);
+
+        manager.createTask(task1);
+
+        Task task2 = new Task("Task 2", "Description", TaskStatus.NEW);
+        task2.setStartTime(task1.getStartTime().plusMinutes(15));
+        task2.setDuration(30);
+
+        int task2Id = manager.createTask(task2);
+
+        assertEquals(-1, task2Id, "Задача добавляется.");
+
+        task2.setStartTime(task1.getStartTime());
+        task2Id = manager.createTask(task2);
+
+        assertEquals(-1, task2Id, "Задача добавляется.");
+
+        task2.setStartTime(task1.getEndTime().minusMinutes(30));
+        task2Id = manager.createTask(task2);
+
+        assertEquals(-1, task2Id, "Задача добавляется.");
+
+        task2.setStartTime(task1.getStartTime().minusMinutes(30));
+        task2.setDuration(120);
+        task2Id = manager.createTask(task2);
+
+        assertEquals(-1, task2Id, "Задача добавляется.");
+    }
 }

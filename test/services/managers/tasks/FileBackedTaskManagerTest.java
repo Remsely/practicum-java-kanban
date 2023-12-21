@@ -21,7 +21,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     }
 
     @AfterEach
-    public void cleanManager() {
+    public void clearManager() {
         manager.removeAllTasks();
     }
 

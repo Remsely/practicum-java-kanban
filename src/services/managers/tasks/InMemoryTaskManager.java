@@ -123,33 +123,42 @@ public class InMemoryTaskManager implements TaskManager {
     public int createTask(Task task) {
         System.out.println("\nСоздание задачи...");
 
-        task.setId(currentTaskID);
-        tasks.put(currentTaskID, task);
-        prioritizedTasks.put(currentTaskID, task);
+        if (isNoIntersectingInTime(task.getStartTime(), task.getEndTime())) {
+            task.setId(currentTaskID);
 
-        currentTaskID++;
-        System.out.println(task + "\n");
-        return task.getId();
+            tasks.put(currentTaskID, task);
+            prioritizedTasks.put(currentTaskID, task);
+
+            currentTaskID++;
+            System.out.println(task + "\n");
+            return task.getId();
+        }
+        printIntersectionErrorToConsole();
+        return -1;
     }
 
     @Override
     public int createTask(Subtask subtask) {
         System.out.println("\nСоздание задачи...");
 
-        int epicID = subtask.getEpicID();
-        Epic epic = epics.get(epicID);
+        if (isNoIntersectingInTime(subtask.getStartTime(), subtask.getEndTime())) {
+            int epicID = subtask.getEpicID();
+            Epic epic = epics.get(epicID);
 
-        subtask.setId(currentTaskID);
-        subtasks.put(currentTaskID, subtask);
-        prioritizedTasks.put(currentTaskID, subtask);
+            subtask.setId(currentTaskID);
+            subtasks.put(currentTaskID, subtask);
+            prioritizedTasks.put(currentTaskID, subtask);
 
-        epic.addSubtaskID(subtask.getId());
-        epic.setStatus(calculateEpicStatus(epicID));
-        setEpicTimes(epicID);
+            epic.addSubtaskID(subtask.getId());
+            epic.setStatus(calculateEpicStatus(epicID));
+            setEpicTimes(epicID);
 
-        currentTaskID++;
-        System.out.println(subtask + "\n");
-        return subtask.getId();
+            currentTaskID++;
+            System.out.println(subtask + "\n");
+            return subtask.getId();
+        }
+        printIntersectionErrorToConsole();
+        return -1;
     }
 
     @Override
@@ -165,37 +174,48 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public boolean updateTask(int id, Task task) {
-        if (tasks.containsKey(id)) {
-            System.out.println("\nОбновление задачи (id = " + id + ")...");
+        System.out.println("\nОбновление задачи (id = " + id + ")...");
 
-            task.setId(id);
-            tasks.put(id, task);
-            prioritizedTasks.put(id, task);
+        if (isNoIntersectingInTime(task.getStartTime(), task.getEndTime())) {
+            if (tasks.containsKey(id)) {
+                task.setId(id);
 
-            System.out.println(task + "\n");
-            return true;
+                tasks.put(id, task);
+                prioritizedTasks.put(id, task);
+
+                System.out.println(task + "\n");
+                return true;
+            }
+            printIndexErrorToConsole(id);
+            return false;
         }
+        printIntersectionErrorToConsole();
         return false;
     }
 
     @Override
     public boolean updateTask(int id, Subtask subtask) {
-        if (subtasks.containsKey(id)) {
-            System.out.println("\nОбновление задачи (id = " + id + ")...");
+        System.out.println("\nОбновление задачи (id = " + id + ")...");
 
-            int epicID = subtask.getEpicID();
-            Epic epic = epics.get(epicID);
+        if (isNoIntersectingInTime(subtask.getStartTime(), subtask.getEndTime())) {
+            if (subtasks.containsKey(id)) {
+                int epicID = subtask.getEpicID();
+                Epic epic = epics.get(epicID);
 
-            subtask.setId(id);
-            subtasks.put(id, subtask);
-            prioritizedTasks.put(id, subtask);
+                subtask.setId(id);
+                subtasks.put(id, subtask);
+                prioritizedTasks.put(id, subtask);
 
-            epic.setStatus(calculateEpicStatus(epicID));
-            setEpicTimes(epicID);
+                epic.setStatus(calculateEpicStatus(epicID));
+                setEpicTimes(epicID);
 
-            System.out.println(subtask + "\n");
-            return true;
+                System.out.println(subtask + "\n");
+                return true;
+            }
+            printIndexErrorToConsole(id);
+            return false;
         }
+        printIntersectionErrorToConsole();
         return false;
     }
 
@@ -239,6 +259,29 @@ public class InMemoryTaskManager implements TaskManager {
         return prioritizedList;
     }
 
+    private boolean isNoIntersectingInTime(LocalDateTime newStartTime, LocalDateTime newEndTime) {
+        if (newStartTime == null)
+            return true;
+
+        for (Task task : prioritizedTasks.values()) {
+            LocalDateTime startTime = task.getStartTime();
+            LocalDateTime endTime = task.getEndTime();
+
+            if (startTime == null)
+                break;
+
+            if (newEndTime.isBefore(startTime))
+                break;
+
+            if ((newStartTime.isAfter(startTime) && newStartTime.isBefore(endTime) || newStartTime.isEqual(startTime))
+                    || (newEndTime.isBefore(endTime) && newEndTime.isAfter(startTime) || newEndTime.isEqual(endTime))
+                    || (newStartTime.isBefore(startTime) && newEndTime.isAfter(endTime))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private Comparator<Integer> getPrioritizedIdsComparator() {
         Comparator<Task> taskPrioriryComparator = Comparator
                 .comparing(Task::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
@@ -266,6 +309,12 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("========================================================");
         System.out.println("Ошибка! Попытка обращения к несущеcтвующему индексу: " + id + "!");
         System.out.println("========================================================\n");
+    }
+
+    private void printIntersectionErrorToConsole() {
+        System.out.println("===================================================================");
+        System.out.println("Ошибка обновления задачи (пересечение во времени с другой задачей)!");
+        System.out.println("===================================================================\n");
     }
 
     private void removeTaskByID(int id) {
