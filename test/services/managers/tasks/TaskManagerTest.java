@@ -214,7 +214,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         Task task = new Task("Task 1", "Description 1", TaskStatus.NEW);
         final int taskId = manager.createTask(task);
 
-        boolean isRemoved = manager.removeTaskByID(taskId);
+        boolean isRemoved = manager.removeTask(taskId);
         Task gottenTask = manager.getTaskByID(taskId);
 
         assertTrue(isRemoved, "Задача не удалена.");
@@ -229,7 +229,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         Subtask subtask = new Subtask(epicId, "Subtask 1", "Description 1", TaskStatus.NEW);
         final int subtaskID = manager.createTask(subtask);
 
-        boolean isRemoved = manager.removeTaskByID(subtaskID);
+        boolean isRemoved = manager.removeTask(subtaskID);
         Task gottenSubtask = manager.getEpicByID(epicId);
 
         assertTrue(isRemoved, "Подзадача не удалена.");
@@ -245,7 +245,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         Epic epic = new Epic("Epic 1", "Description 1");
         final int epicId = manager.createTask(epic);
 
-        boolean isRemoved = manager.removeTaskByID(epicId);
+        boolean isRemoved = manager.removeTask(epicId);
         Task gottenEpic = manager.getEpicByID(epicId);
 
         assertTrue(isRemoved, "Эпик не удален.");
@@ -254,7 +254,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void shouldReturnFalseOnRemoveIfTaskIsNotExist() {
-        boolean isRemoved = manager.removeTaskByID(1);
+        boolean isRemoved = manager.removeTask(1);
         assertFalse(isRemoved, "Подзадача удалена.");
     }
 
@@ -417,5 +417,61 @@ abstract class TaskManagerTest<T extends TaskManager> {
                 epic.getEndTime(),
                 "Времена завершения эпика и последней подзадачи не совпадают."
         );
+    }
+
+    @Test
+    public void shouldReturnEmptyPrioritizedList() {
+        List<Task> prioritizedList = manager.getPrioritizedTasks();
+        assertNotNull(prioritizedList, "Список не возвращается");
+    }
+
+    @Test
+    public void shouldSortPrioritizeTasksAndReactToDeletionCorrectly() {
+        Task task1 = new Task("Task1", "Description", TaskStatus.NEW);
+        task1.setStartTime(LocalDateTime.now().plusHours(3));
+        task1.setDuration(30);
+
+        Task task2 = new Task("Task2", "Description", TaskStatus.NEW);
+        task2.setStartTime(LocalDateTime.now().plusHours(2));
+        task2.setDuration(30);
+
+        Task task3 = new Task("Task3", "Description", TaskStatus.NEW);
+        task3.setStartTime(LocalDateTime.now().plusHours(1));
+        task3.setDuration(30);
+
+        Task task4 = new Task("Task4", "Description", TaskStatus.NEW);
+        Task task5 = new Task("Task5", "Description", TaskStatus.NEW);
+
+        final int task5Id = manager.createTask(task5);
+        final int task1Id = manager.createTask(task1);
+        manager.createTask(task4);
+        manager.createTask(task3);
+        manager.createTask(task2);
+
+        List<Task> prioritizedList = manager.getPrioritizedTasks();
+
+        assertNotNull(prioritizedList, "Список не возвращается");
+        assertEquals(5, prioritizedList.size(), "Неправильная длинна списка.");
+        assertEquals(task3, prioritizedList.get(0), "Задачи расположены в неправильном порядке.");
+        assertEquals(task2, prioritizedList.get(1), "Задачи расположены в неправильном порядке.");
+        assertEquals(task1, prioritizedList.get(2), "Задачи расположены в неправильном порядке.");
+        assertEquals(task4, prioritizedList.get(3), "Задачи расположены в неправильном порядке.");
+        assertEquals(task5, prioritizedList.get(4), "Задачи расположены в неправильном порядке.");
+
+        manager.removeTask(task1Id);
+        manager.removeTask(task5Id);
+
+        prioritizedList = manager.getPrioritizedTasks();
+
+        assertEquals(3, prioritizedList.size(), "Неправильная длинна списка.");
+        assertEquals(task3, prioritizedList.get(0), "Задачи расположены в неправильном порядке.");
+        assertEquals(task2, prioritizedList.get(1), "Задачи расположены в неправильном порядке.");
+        assertEquals(task4, prioritizedList.get(2), "Задачи расположены в неправильном порядке.");
+
+        manager.removeAllTasks();
+
+        prioritizedList = manager.getPrioritizedTasks();
+
+        assertEquals(0, prioritizedList.size(), "Неправильная длинна списка.");
     }
 }

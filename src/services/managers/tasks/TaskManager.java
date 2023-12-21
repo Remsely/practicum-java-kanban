@@ -31,7 +31,9 @@ public interface TaskManager {
 
     boolean updateTask(int id, Subtask subtask);
 
-    boolean removeTaskByID(int id);
+    boolean removeTask(int id);
 
     List<Task> getHistory();
+
+    List<Task> getPrioritizedTasks();
 }

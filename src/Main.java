@@ -37,12 +37,12 @@ public class Main {
 
         manager.getHistory();
 
-        manager.removeTaskByID(6);
-        manager.removeTaskByID(1);
+        manager.removeTask(6);
+        manager.removeTask(1);
 
         manager.getHistory();
 
-        manager.removeTaskByID(2);
+        manager.removeTask(2);
 
         manager.getHistory();
 
@@ -50,7 +50,7 @@ public class Main {
 
         manager.getHistory();
 
-        manager.removeTaskByID(0);
+        manager.removeTask(0);
 
         manager.getHistory();
     }

@@ -9,15 +9,13 @@ import services.managers.util.CSVFiles;
 import services.managers.util.Managers;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Task> tasks;
     protected final Map<Integer, Epic> epics;
     protected final Map<Integer, Subtask> subtasks;
+    protected final TreeMap<Integer, Task> prioritizedTasks;
     protected final HistoryManager history;
     protected int currentTaskID;
 
@@ -27,6 +25,7 @@ public class InMemoryTaskManager implements TaskManager {
         epics = new HashMap<>();
         subtasks = new HashMap<>();
         history = Managers.getDefaultHistory();
+        prioritizedTasks = new TreeMap<>(getPrioritizedIdsComparator());
     }
 
     @Override
@@ -69,6 +68,7 @@ public class InMemoryTaskManager implements TaskManager {
         tasks.clear();
         epics.clear();
         subtasks.clear();
+        prioritizedTasks.clear();
         currentTaskID = 0;
 
         for (Task task : history.getHistory())
@@ -124,8 +124,10 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("\nСоздание задачи...");
 
         task.setId(currentTaskID);
-        tasks.put(currentTaskID++, task);
+        tasks.put(currentTaskID, task);
+        prioritizedTasks.put(currentTaskID, task);
 
+        currentTaskID++;
         System.out.println(task + "\n");
         return task.getId();
     }
@@ -138,12 +140,14 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.get(epicID);
 
         subtask.setId(currentTaskID);
-        subtasks.put(currentTaskID++, subtask);
+        subtasks.put(currentTaskID, subtask);
+        prioritizedTasks.put(currentTaskID, subtask);
 
         epic.addSubtaskID(subtask.getId());
         epic.setStatus(calculateEpicStatus(epicID));
         setEpicTimes(epicID);
 
+        currentTaskID++;
         System.out.println(subtask + "\n");
         return subtask.getId();
     }
@@ -163,8 +167,11 @@ public class InMemoryTaskManager implements TaskManager {
     public boolean updateTask(int id, Task task) {
         if (tasks.containsKey(id)) {
             System.out.println("\nОбновление задачи (id = " + id + ")...");
+
             task.setId(id);
             tasks.put(id, task);
+            prioritizedTasks.put(id, task);
+
             System.out.println(task + "\n");
             return true;
         }
@@ -181,6 +188,8 @@ public class InMemoryTaskManager implements TaskManager {
 
             subtask.setId(id);
             subtasks.put(id, subtask);
+            prioritizedTasks.put(id, subtask);
+
             epic.setStatus(calculateEpicStatus(epicID));
             setEpicTimes(epicID);
 
@@ -191,12 +200,11 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public boolean removeTaskByID(int id) {
+    public boolean removeTask(int id) {
         System.out.println("\nУдаление задачи (id = " + id + ")...");
 
         if (tasks.containsKey(id)) {
-            tasks.remove(id);
-            history.remove(id);
+            removeTaskByID(id);
         } else if (epics.containsKey(id)) {
             removeEpicByID(id);
         } else if (subtasks.containsKey(id)) {
@@ -220,10 +228,50 @@ public class InMemoryTaskManager implements TaskManager {
         return currentHistory;
     }
 
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        System.out.println("\nПолучение списка задач в порядке приоритета...");
+
+        List<Task> prioritizedList = new ArrayList<>(prioritizedTasks.values());
+
+        System.out.println(prioritizedList + "\n");
+
+        return prioritizedList;
+    }
+
+    private Comparator<Integer> getPrioritizedIdsComparator() {
+        Comparator<Task> taskPrioriryComparator = Comparator
+                .comparing(Task::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(Task::getName);
+
+        return (id1, id2) -> {
+            Task task1;
+            Task task2;
+
+            if (subtasks.containsKey(id1))
+                task1 = subtasks.get(id1);
+            else
+                task1 = tasks.get(id1);
+
+            if (subtasks.containsKey(id2))
+                task2 = subtasks.get(id2);
+            else
+                task2 = tasks.get(id2);
+
+            return taskPrioriryComparator.compare(task1, task2);
+        };
+    }
+
     private void printIndexErrorToConsole(int id) {
         System.out.println("========================================================");
         System.out.println("Ошибка! Попытка обращения к несущеcтвующему индексу: " + id + "!");
         System.out.println("========================================================\n");
+    }
+
+    private void removeTaskByID(int id) {
+        prioritizedTasks.remove(id);
+        tasks.remove(id);
+        history.remove(id);
     }
 
     private void removeEpicByID(int id) {
@@ -245,6 +293,7 @@ public class InMemoryTaskManager implements TaskManager {
         epic.setStatus(calculateEpicStatus(epicID));
         setEpicTimes(epicID);
 
+        prioritizedTasks.remove(id);
         subtasks.remove(id);
         history.remove(id);
 

@@ -88,8 +88,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public boolean removeTaskByID(int id) {
-        boolean isDeleted = super.removeTaskByID(id);
+    public boolean removeTask(int id) {
+        boolean isDeleted = super.removeTask(id);
         save();
         return isDeleted;
     }
