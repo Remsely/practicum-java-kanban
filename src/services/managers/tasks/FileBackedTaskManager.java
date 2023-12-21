@@ -26,70 +26,70 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void removeAllTasks() {
-        super.removeAllTasks();
+    public void clear() {
+        super.clear();
         save();
     }
 
     @Override
-    public Task getTaskByID(int id) {
-        Task task = super.getTaskByID(id);
+    public Task getTask(int id) {
+        Task task = super.getTask(id);
         save();
         return task;
     }
 
     @Override
-    public Epic getEpicByID(int id) {
-        Epic epic = super.getEpicByID(id);
+    public Epic getEpic(int id) {
+        Epic epic = super.getEpic(id);
         save();
         return epic;
     }
 
     @Override
-    public Subtask getSubtaskByID(int id) {
-        Subtask subtask = super.getSubtaskByID(id);
+    public Subtask getSubtask(int id) {
+        Subtask subtask = super.getSubtask(id);
         save();
         return subtask;
     }
 
     @Override
-    public int createTask(Task task) {
-        int id = super.createTask(task);
+    public int add(Task task) {
+        int id = super.add(task);
         save();
         return id;
     }
 
     @Override
-    public int createTask(Subtask subtask) {
-        int id = super.createTask(subtask);
+    public int add(Subtask subtask) {
+        int id = super.add(subtask);
         save();
         return id;
     }
 
     @Override
-    public int createTask(Epic epic) {
-        int id = super.createTask(epic);
+    public int add(Epic epic) {
+        int id = super.add(epic);
         save();
         return id;
     }
 
     @Override
-    public boolean updateTask(int id, Task task) {
-        boolean isUpdated = super.updateTask(id, task);
+    public boolean update(int id, Task task) {
+        boolean isUpdated = super.update(id, task);
         save();
         return isUpdated;
     }
 
     @Override
-    public boolean updateTask(int id, Subtask subtask) {
-        boolean isUpdated = super.updateTask(id, subtask);
+    public boolean update(int id, Subtask subtask) {
+        boolean isUpdated = super.update(id, subtask);
         save();
         return isUpdated;
     }
 
     @Override
-    public boolean removeTask(int id) {
-        boolean isDeleted = super.removeTask(id);
+    public boolean remove(int id) {
+        boolean isDeleted = super.remove(id);
         save();
         return isDeleted;
     }

@@ -13,25 +13,25 @@ public interface TaskManager {
 
     List<Subtask> getSubtasks();
 
-    void removeAllTasks();
+    void clear();
 
-    Task getTaskByID(int id);
+    Task getTask(int id);
 
-    Epic getEpicByID(int id);
+    Epic getEpic(int id);
 
-    Subtask getSubtaskByID(int id);
+    Subtask getSubtask(int id);
 
-    int createTask(Task task);
+    int add(Task task);
 
-    int createTask(Subtask subtask);
+    int add(Subtask subtask);
 
-    int createTask(Epic epic);
+    int add(Epic epic);
 
-    boolean updateTask(int id, Task task);
+    boolean update(int id, Task task);
 
-    boolean updateTask(int id, Subtask subtask);
+    boolean update(int id, Subtask subtask);
 
-    boolean removeTask(int id);
+    boolean remove(int id);
 
     List<Task> getHistory();
 

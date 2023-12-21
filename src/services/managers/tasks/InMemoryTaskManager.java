@@ -62,7 +62,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void removeAllTasks() {
+    public void clear() {
         System.out.println("\nУдаление всех задач...");
 
         tasks.clear();
@@ -78,7 +78,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getTaskByID(int id) {
+    public Task getTask(int id) {
         System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
         Task task = tasks.getOrDefault(id, null);
 
@@ -92,7 +92,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Epic getEpicByID(int id) {
+    public Epic getEpic(int id) {
         System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
         Epic epic = epics.getOrDefault(id, null);
 
@@ -106,7 +106,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Subtask getSubtaskByID(int id) {
+    public Subtask getSubtask(int id) {
         System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
         Subtask subtask = subtasks.getOrDefault(id, null);
 
@@ -120,7 +120,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int createTask(Task task) {
+    public int add(Task task) {
         System.out.println("\nСоздание задачи...");
 
         if (isNoIntersectingInTime(task.getStartTime(), task.getEndTime())) {
@@ -138,7 +138,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int createTask(Subtask subtask) {
+    public int add(Subtask subtask) {
         System.out.println("\nСоздание задачи...");
 
         if (isNoIntersectingInTime(subtask.getStartTime(), subtask.getEndTime())) {
@@ -162,7 +162,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int createTask(Epic epic) {
+    public int add(Epic epic) {
         System.out.println("\nСоздание задачи...");
 
         epic.setId(currentTaskID);
@@ -173,7 +173,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public boolean updateTask(int id, Task task) {
+    public boolean update(int id, Task task) {
         System.out.println("\nОбновление задачи (id = " + id + ")...");
 
         if (isNoIntersectingInTime(task.getStartTime(), task.getEndTime())) {
@@ -194,7 +194,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public boolean updateTask(int id, Subtask subtask) {
+    public boolean update(int id, Subtask subtask) {
         System.out.println("\nОбновление задачи (id = " + id + ")...");
 
         if (isNoIntersectingInTime(subtask.getStartTime(), subtask.getEndTime())) {
@@ -220,7 +220,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public boolean removeTask(int id) {
+    public boolean remove(int id) {
         System.out.println("\nУдаление задачи (id = " + id + ")...");
 
         if (tasks.containsKey(id)) {
