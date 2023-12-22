@@ -282,24 +282,24 @@ public class InMemoryTaskManager implements TaskManager {
         return true;
     }
 
+    // Насколько вообще хорошая идея хранить задачи в TreeSet таким образом? Я выбрал такой подход из-за простоты
+    // обновления задач.
+    // И еще вопрос. Стоит ли добавлять содержимое lib в git? По умолчанию IDEA это не делает.
     private Comparator<Integer> getPrioritizedIdsComparator() {
         Comparator<Task> taskPrioriryComparator = Comparator
                 .comparing(Task::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(Task::getName);
 
         return (id1, id2) -> {
-            Task task1;
-            Task task2;
+            Task task1 = tasks.getOrDefault(id1, subtasks.get(id1));
+            Task task2 = tasks.getOrDefault(id2, subtasks.get(id2));
 
-            if (subtasks.containsKey(id1))
-                task1 = subtasks.get(id1);
-            else
-                task1 = tasks.get(id1);
-
-            if (subtasks.containsKey(id2))
-                task2 = subtasks.get(id2);
-            else
-                task2 = tasks.get(id2);
+            if (task1 == null && task2 == null)
+                return 0;
+            else if (task1 == null)
+                return 1;
+            else if (task2 == null)
+                return -1;
 
             return taskPrioriryComparator.compare(task1, task2);
         };
