@@ -426,14 +426,10 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    public void shouldSortPrioritizeTasksAndReactToDeletionCorrectly() {
+    public void shouldSortPrioritizeTasksAndReactToDeletionAndUpdateCorrectly() {
         Task task1 = new Task("Task1", "Description", TaskStatus.NEW);
-        task1.setStartTime(LocalDateTime.now().plusHours(3));
-        task1.setDuration(30);
 
         Task task2 = new Task("Task2", "Description", TaskStatus.NEW);
-        task2.setStartTime(LocalDateTime.now().plusHours(2));
-        task2.setDuration(30);
 
         Task task3 = new Task("Task3", "Description", TaskStatus.NEW);
         task3.setStartTime(LocalDateTime.now().plusHours(1));
@@ -442,11 +438,22 @@ abstract class TaskManagerTest<T extends TaskManager> {
         Task task4 = new Task("Task4", "Description", TaskStatus.NEW);
         Task task5 = new Task("Task5", "Description", TaskStatus.NEW);
 
-        final int task5Id = manager.add(task5);
         final int task1Id = manager.add(task1);
-        manager.add(task4);
+        final int task2Id = manager.add(task2);
         manager.add(task3);
-        manager.add(task2);
+        manager.add(task4);
+        final int task5Id = manager.add(task5);
+
+        task1 = manager.getTask(task1Id);
+        task1.setStartTime(LocalDateTime.now().plusHours(3));
+        task1.setDuration(30);
+
+        task2 = manager.getTask(task2Id);
+        task2.setStartTime(LocalDateTime.now().plusHours(2));
+        task2.setDuration(30);
+
+        manager.update(task1Id, task1);
+        manager.update(task2Id, task2);
 
         List<Task> prioritizedList = manager.getPrioritizedTasks();
 

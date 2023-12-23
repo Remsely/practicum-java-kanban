@@ -182,8 +182,7 @@ public class InMemoryTaskManager implements TaskManager {
             if (tasks.containsKey(id)) {
                 task.setId(id);
 
-                tasks.put(id, task);
-                prioritizedTasks.put(id, task);
+                updateTasksInMaps(id, task);
 
                 System.out.println(task + "\n");
                 return true;
@@ -193,6 +192,17 @@ public class InMemoryTaskManager implements TaskManager {
         }
         printIntersectionErrorToConsole();
         return false;
+    }
+
+    private void updateTasksInMaps(int id, Task task) {
+        prioritizedTasks.remove(id);
+
+        if (task instanceof Subtask)
+            subtasks.put(id, (Subtask) task);
+        else
+            tasks.put(id, task);
+
+        prioritizedTasks.put(id, task);
     }
 
     @Override
@@ -205,8 +215,8 @@ public class InMemoryTaskManager implements TaskManager {
                 Epic epic = epics.get(epicID);
 
                 subtask.setId(id);
-                subtasks.put(id, subtask);
-                prioritizedTasks.put(id, subtask);
+
+                updateTasksInMaps(id, subtask);
 
                 epic.setStatus(calculateEpicStatus(epicID));
                 setEpicTimes(epicID);
