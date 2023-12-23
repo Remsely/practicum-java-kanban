@@ -123,7 +123,7 @@ public class InMemoryTaskManager implements TaskManager {
     public int add(Task task) {
         System.out.println("\nСоздание задачи...");
 
-        if (isNoIntersectingInTime(task.getStartTime(), task.getEndTime())) {
+        if (validateIntersectionsInTime(task.getStartTime(), task.getEndTime())) {
             task.setId(currentTaskID);
 
             tasks.put(currentTaskID, task);
@@ -142,7 +142,7 @@ public class InMemoryTaskManager implements TaskManager {
     public int add(Subtask subtask) {
         System.out.println("\nСоздание задачи...");
 
-        if (isNoIntersectingInTime(subtask.getStartTime(), subtask.getEndTime())) {
+        if (validateIntersectionsInTime(subtask.getStartTime(), subtask.getEndTime())) {
             int epicID = subtask.getEpicID();
             Epic epic = epics.get(epicID);
 
@@ -178,7 +178,7 @@ public class InMemoryTaskManager implements TaskManager {
     public boolean update(int id, Task task) {
         System.out.println("\nОбновление задачи (id = " + id + ")...");
 
-        if (isNoIntersectingInTime(task.getStartTime(), task.getEndTime())) {
+        if (validateIntersectionsInTime(task.getStartTime(), task.getEndTime())) {
             if (tasks.containsKey(id)) {
                 task.setId(id);
 
@@ -194,22 +194,11 @@ public class InMemoryTaskManager implements TaskManager {
         return false;
     }
 
-    private void updateTasksInMaps(int id, Task task) {
-        prioritizedTasks.remove(id);
-
-        if (task instanceof Subtask)
-            subtasks.put(id, (Subtask) task);
-        else
-            tasks.put(id, task);
-
-        prioritizedTasks.put(id, task);
-    }
-
     @Override
     public boolean update(int id, Subtask subtask) {
         System.out.println("\nОбновление задачи (id = " + id + ")...");
 
-        if (isNoIntersectingInTime(subtask.getStartTime(), subtask.getEndTime())) {
+        if (validateIntersectionsInTime(subtask.getStartTime(), subtask.getEndTime())) {
             if (subtasks.containsKey(id)) {
                 int epicID = subtask.getEpicID();
                 Epic epic = epics.get(epicID);
@@ -272,29 +261,6 @@ public class InMemoryTaskManager implements TaskManager {
         return prioritizedList;
     }
 
-    private boolean isNoIntersectingInTime(LocalDateTime newStartTime, LocalDateTime newEndTime) {
-        if (newStartTime == null)
-            return true;
-
-        for (Task task : prioritizedTasks.values()) {
-            LocalDateTime startTime = task.getStartTime();
-            LocalDateTime endTime = task.getEndTime();
-
-            if (startTime == null)
-                break;
-
-            if (newEndTime.isBefore(startTime))
-                break;
-
-            if ((newStartTime.isAfter(startTime) && newStartTime.isBefore(endTime) || newStartTime.isEqual(startTime))
-                    || (newEndTime.isBefore(endTime) && newEndTime.isAfter(startTime) || newEndTime.isEqual(endTime))
-                    || (newStartTime.isBefore(startTime) && newEndTime.isAfter(endTime))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     // Насколько вообще хорошая идея хранить задачи в TreeSet таким образом? Я выбрал такой подход из-за простоты
     // обновления задач.
     // И еще вопрос. Стоит ли добавлять содержимое lib в git? По умолчанию IDEA это не делает.
@@ -318,16 +284,38 @@ public class InMemoryTaskManager implements TaskManager {
         };
     }
 
-    private void printIndexErrorToConsole(int id) {
-        System.out.println("========================================================");
-        System.out.println("Ошибка! Попытка обращения к несущеcтвующему индексу: " + id + "!");
-        System.out.println("========================================================\n");
+    private boolean validateIntersectionsInTime(LocalDateTime newStartTime, LocalDateTime newEndTime) {
+        if (newStartTime == null)
+            return true;
+
+        for (Task task : prioritizedTasks.values()) {
+            LocalDateTime startTime = task.getStartTime();
+            LocalDateTime endTime = task.getEndTime();
+
+            if (startTime == null)
+                break;
+
+            if (newEndTime.isBefore(startTime))
+                break;
+
+            if ((newStartTime.isAfter(startTime) && newStartTime.isBefore(endTime) || newStartTime.isEqual(startTime))
+                    || (newEndTime.isBefore(endTime) && newEndTime.isAfter(startTime) || newEndTime.isEqual(endTime))
+                    || (newStartTime.isBefore(startTime) && newEndTime.isAfter(endTime))) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    private void printIntersectionErrorToConsole() {
-        System.out.println("===================================================================");
-        System.out.println("Ошибка обновления задачи (пересечение во времени с другой задачей)!");
-        System.out.println("===================================================================\n");
+    private void updateTasksInMaps(int id, Task task) {
+        prioritizedTasks.remove(id);
+
+        if (task instanceof Subtask)
+            subtasks.put(id, (Subtask) task);
+        else
+            tasks.put(id, task);
+
+        prioritizedTasks.put(id, task);
     }
 
     private void removeTaskByID(int id) {
@@ -441,6 +429,18 @@ public class InMemoryTaskManager implements TaskManager {
             epic.setEndTime(maxEndTime);
             epic.setDuration(calculateEpicDuration(epicID));
         }
+    }
+
+    private void printIndexErrorToConsole(int id) {
+        System.out.println("========================================================");
+        System.out.println("Ошибка! Попытка обращения к несущеcтвующему индексу: " + id + "!");
+        System.out.println("========================================================\n");
+    }
+
+    private void printIntersectionErrorToConsole() {
+        System.out.println("===================================================================");
+        System.out.println("Ошибка обновления задачи (пересечение во времени с другой задачей)!");
+        System.out.println("===================================================================\n");
     }
 
     @Override

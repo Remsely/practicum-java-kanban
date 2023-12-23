@@ -6,8 +6,10 @@ import services.managers.tasks.TaskManager;
 import services.managers.util.Managers;
 
 public class Main {
+    private static final String FILE_PATH = "src/backup/csv/test_manager.csv";
+
     public static void main(String[] args) {
-        TaskManager manager = Managers.getDefault();
+        TaskManager manager = Managers.getFromFile(FILE_PATH);
 
         manager.add(new Task("Задача 1", "Описание задачи 1", TaskStatus.NEW));
         manager.add(new Task("Задача 2", "Описание задачи 2", TaskStatus.NEW));
