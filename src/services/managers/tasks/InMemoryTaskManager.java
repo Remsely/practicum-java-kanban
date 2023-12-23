@@ -130,6 +130,7 @@ public class InMemoryTaskManager implements TaskManager {
             prioritizedTasks.put(currentTaskID, task);
 
             currentTaskID++;
+
             System.out.println(task + "\n");
             return task.getId();
         }
@@ -154,6 +155,7 @@ public class InMemoryTaskManager implements TaskManager {
             setEpicTimes(epicID);
 
             currentTaskID++;
+
             System.out.println(subtask + "\n");
             return subtask.getId();
         }
@@ -243,6 +245,7 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("\nПолучение истории обращения к задачам...");
 
         List<Task> currentHistory = history.getHistory();
+
         System.out.println(currentHistory + "\n");
 
         return currentHistory;

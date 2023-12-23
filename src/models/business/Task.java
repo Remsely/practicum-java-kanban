@@ -32,10 +32,6 @@ public class Task {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
-        this.status = status;
-    }
-
     public int getId() {
         return id;
     }

@@ -37,6 +37,10 @@ public class Epic extends Task {
         subtasksIDs.remove(id);
     }
 
+    public void setStatus(TaskStatus status) {
+        this.status = status;
+    }
+
     @Override
     public LocalDateTime getEndTime() {
         return endTime;
