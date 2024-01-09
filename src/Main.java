@@ -2,14 +2,17 @@ import models.business.Epic;
 import models.business.Subtask;
 import models.business.Task;
 import models.enums.TaskStatus;
+import services.http.servers.KVServer;
 import services.managers.tasks.TaskManager;
 import services.managers.util.Managers;
 
-public class Main {
-    private static final String FILE_PATH = "src/backup/csv/test_manager.csv";
+import java.io.IOException;
 
-    public static void main(String[] args) {
-        TaskManager manager = Managers.getFromFile(FILE_PATH);
+public class Main {
+    public static void main(String[] args) throws IOException {
+        KVServer.main(null);
+
+        TaskManager manager = Managers.getDefault();
 
         manager.add(new Task("Задача 1", "Описание задачи 1", TaskStatus.NEW));
         manager.add(new Task("Задача 2", "Описание задачи 2", TaskStatus.NEW));
@@ -29,31 +32,21 @@ public class Main {
         manager.getSubtask(4);
         manager.getTask(0);
 
-        manager.getHistory();
+        System.out.println(manager);
 
-        manager.getEpic(6);
-        manager.getSubtask(4);
-        manager.getSubtask(3);
-        manager.getSubtask(5);
-        manager.getTask(1);
+        TaskManager manager2 = Managers.getDefault();
 
-        manager.getHistory();
+        System.out.println(manager2);
 
-        manager.remove(6);
-        manager.remove(1);
+        manager2.remove(1);
+        manager2.remove(6);
+        manager2.remove(4);
+        manager2.remove(0);
 
-        manager.getHistory();
+        System.out.println(manager2);
 
-        manager.remove(2);
+        manager2.clear();
 
-        manager.getHistory();
-
-        manager.getTask(0);
-
-        manager.getHistory();
-
-        manager.remove(0);
-
-        manager.getHistory();
+        System.out.println(manager2);
     }
 }

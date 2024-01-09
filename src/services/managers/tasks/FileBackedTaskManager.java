@@ -25,6 +25,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         backupAll();
     }
 
+    public FileBackedTaskManager() {
+        path = null;
+    }
+
     @Override
     public void clear() {
         super.clear();
@@ -133,7 +137,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return content;
     }
 
-    private void backupTask(Task task) {
+    protected void backupTask(Task task) {
         if (task != null) {
             if (task instanceof Epic)
                 createBackedTask((Epic) task);
@@ -159,12 +163,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private void createBackedTask(Epic epic) {
+        epic.getSubtasksIDs().clear();
         epics.put(epic.getId(), epic);
     }
 
     private void createBackedHistory(String csv) {
         List<Integer> historyItemsIDs = CSVFiles.historyFromCSV(csv);
+        backupHistory(historyItemsIDs);
+    }
 
+    protected void backupHistory(List<Integer> historyItemsIDs) {
         for (Integer id : historyItemsIDs) {
             if (tasks.containsKey(id))
                 history.add(tasks.get(id));
@@ -175,7 +183,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    private void save() {
+    protected void save() {
         try (Writer fileWriter = new FileWriter(path.toFile())) {
             writeLineToFile(CSVFiles.getCSVAttrs(), fileWriter);
 

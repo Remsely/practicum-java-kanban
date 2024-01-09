@@ -24,10 +24,14 @@ public class KVServer {
         server.createContext("/load", this::load);
     }
 
+    public static void main(String[] args) throws IOException {
+        new KVServer().start();
+    }
+
     private void load(HttpExchange h) throws IOException {
         try {
             System.out.println("\n/load");
-            if (!hasAuth(h)) {
+            if (hasNoAuth(h)) {
                 System.out.println("Запрос неавторизован");
                 h.sendResponseHeaders(403, 0);
                 return;
@@ -56,7 +60,7 @@ public class KVServer {
     private void save(HttpExchange h) throws IOException {
         try {
             System.out.println("\n/save");
-            if (!hasAuth(h)) {
+            if (hasNoAuth(h)) {
                 System.out.println("Запрос неавторизован, нужен параметр в query API_TOKEN со значением апи-ключа");
                 h.sendResponseHeaders(403, 0);
                 return;
@@ -111,9 +115,9 @@ public class KVServer {
         return "" + System.currentTimeMillis();
     }
 
-    protected boolean hasAuth(HttpExchange h) {
+    protected boolean hasNoAuth(HttpExchange h) {
         String rawQuery = h.getRequestURI().getRawQuery();
-        return rawQuery != null && (rawQuery.contains("API_TOKEN=" + apiToken) || rawQuery.contains("API_TOKEN=DEBUG"));
+        return rawQuery == null || (!rawQuery.contains("API_TOKEN=" + apiToken) && !rawQuery.contains("API_TOKEN=DEBUG"));
     }
 
     protected String readText(HttpExchange h) throws IOException {

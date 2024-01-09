@@ -27,7 +27,7 @@ public class HttpTaskServer {
 
     public HttpTaskServer(TaskManager manager) throws IOException {
         this.manager = manager;
-        this.gson = new Gson();
+        this.gson = Managers.getGson();
         server = HttpServer.create(new InetSocketAddress(PORT), 0);
         server.createContext("/tasks", this::handler);
     }
