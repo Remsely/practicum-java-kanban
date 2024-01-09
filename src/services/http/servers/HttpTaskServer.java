@@ -19,14 +19,14 @@ public class HttpTaskServer {
     public static final int PORT = 8080;
     private final HttpServer server;
     private final Gson gson;
-    private final TaskManager taskManager;
+    private final TaskManager manager;
 
     public HttpTaskServer() throws IOException {
         this(Managers.getDefault());
     }
 
-    public HttpTaskServer(TaskManager taskManager) throws IOException {
-        this.taskManager = taskManager;
+    public HttpTaskServer(TaskManager manager) throws IOException {
+        this.manager = manager;
         this.gson = new Gson();
         server = HttpServer.create(new InetSocketAddress(PORT), 0);
         server.createContext("/tasks", this::handler);
@@ -76,11 +76,11 @@ public class HttpTaskServer {
     private void handleRoot(HttpExchange h) throws IOException {
         switch (h.getRequestMethod()) {
             case "GET":
-                String response = gson.toJson(taskManager.getPrioritizedTasks());
+                String response = gson.toJson(manager.getPrioritizedTasks());
                 sendText(h, response);
                 break;
             case "DELETE":
-                taskManager.clear();
+                manager.clear();
                 h.sendResponseHeaders(200, 0);
                 break;
             default:
@@ -138,7 +138,7 @@ public class HttpTaskServer {
         }
 
         int id = getQueryId(query);
-        List<Subtask> subtasks = taskManager.getEpicSubtasks(id);
+        List<Subtask> subtasks = manager.getEpicSubtasks(id);
 
         if (subtasks != null) {
             String response = gson.toJson(subtasks);
@@ -170,7 +170,7 @@ public class HttpTaskServer {
 
     private void handleHistory(HttpExchange h) throws IOException {
         if ("GET".equals(h.getRequestMethod())) {
-            String response = gson.toJson(taskManager.getHistory());
+            String response = gson.toJson(manager.getHistory());
             sendText(h, response);
             return;
         }
@@ -180,14 +180,14 @@ public class HttpTaskServer {
 
     private void handleGetTask(HttpExchange h, String query) throws IOException {
         if (query == null) {
-            List<Task> tasks = taskManager.getTasks();
+            List<Task> tasks = manager.getTasks();
             String response = gson.toJson(tasks);
             sendText(h, response);
             return;
         }
 
         int id = getQueryId(query);
-        Task task = taskManager.getTask(id);
+        Task task = manager.getTask(id);
 
         if (task != null) {
             String response = gson.toJson(task);
@@ -203,10 +203,10 @@ public class HttpTaskServer {
         Task task = gson.fromJson(body, Task.class);
 
         int taskId = task.getId();
-        if (taskManager.getTask(taskId) != null)
-            taskManager.update(taskId, task);
+        if (manager.getTask(taskId) != null)
+            manager.update(taskId, task);
         else
-            taskManager.add(task);
+            manager.add(task);
 
         h.sendResponseHeaders(200, 0);
     }
@@ -219,7 +219,7 @@ public class HttpTaskServer {
         }
 
         int id = getQueryId(query);
-        if (taskManager.remove(id))
+        if (manager.remove(id))
             h.sendResponseHeaders(200, 0);
         else {
             System.out.println("Задачи с индексом " + id + "не существует!");
@@ -229,14 +229,14 @@ public class HttpTaskServer {
 
     private void handleGetSubtask(HttpExchange h, String query) throws IOException {
         if (query == null) {
-            List<Subtask> subtasks = taskManager.getSubtasks();
+            List<Subtask> subtasks = manager.getSubtasks();
             String response = gson.toJson(subtasks);
             sendText(h, response);
             return;
         }
 
         int id = getQueryId(query);
-        Subtask subtask = taskManager.getSubtask(id);
+        Subtask subtask = manager.getSubtask(id);
 
         if (subtask != null) {
             String response = gson.toJson(subtask);
@@ -252,24 +252,24 @@ public class HttpTaskServer {
         Subtask subtask = gson.fromJson(body, Subtask.class);
 
         int taskId = subtask.getId();
-        if (taskManager.getSubtask(taskId) != null)
-            taskManager.update(taskId, subtask);
+        if (manager.getSubtask(taskId) != null)
+            manager.update(taskId, subtask);
         else
-            taskManager.add(subtask);
+            manager.add(subtask);
 
         h.sendResponseHeaders(200, 0);
     }
 
     private void handleGetEpic(HttpExchange h, String query) throws IOException {
         if (query == null) {
-            List<Epic> epics = taskManager.getEpics();
+            List<Epic> epics = manager.getEpics();
             String response = gson.toJson(epics);
             sendText(h, response);
             return;
         }
 
         int id = getQueryId(query);
-        Epic epic = taskManager.getEpic(id);
+        Epic epic = manager.getEpic(id);
 
         if (epic != null) {
             String response = gson.toJson(epic);
@@ -285,10 +285,10 @@ public class HttpTaskServer {
         Epic epic = gson.fromJson(body, Epic.class);
 
         int taskId = epic.getId();
-        if (taskManager.getEpic(taskId) != null)
-            taskManager.update(taskId, epic);
+        if (manager.getEpic(taskId) != null)
+            manager.update(taskId, epic);
         else
-            taskManager.add(epic);
+            manager.add(epic);
 
         h.sendResponseHeaders(200, 0);
     }
