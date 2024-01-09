@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Epic extends Task {
-    private final List<Integer> subtasksIDs;
+    public final List<Integer> subtasksIDs;
     private LocalDateTime endTime;
 
     public Epic(String name, String description) {

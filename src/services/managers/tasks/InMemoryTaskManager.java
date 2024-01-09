@@ -82,12 +82,12 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
         Task task = tasks.getOrDefault(id, null);
 
-        if (task == null)
+        if (task == null) {
             printIndexErrorToConsole(id);
-        else
+        } else {
             history.add(task);
-
-        System.out.println(task + "\n");
+            System.out.println(task + "\n");
+        }
         return task != null ? new Task(task) : null;
     }
 
@@ -96,13 +96,28 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
         Epic epic = epics.getOrDefault(id, null);
 
-        if (epic == null)
+        if (epic == null) {
             printIndexErrorToConsole(id);
-        else
+        } else {
             history.add(epic);
-
-        System.out.println(epic + "\n");
+            System.out.println(epic + "\n");
+        }
         return epic != null ? new Epic(epic) : null;
+    }
+
+    @Override
+    public List<Subtask> getEpicSubtasks(int id) {
+        if (epics.containsKey(id)) {
+            Epic epic = epics.get(id);
+            List<Integer> subtasksIDs = epic.getSubtasksIDs();
+            List<Subtask> epicSubtasks = new ArrayList<>();
+
+            for (Integer subtaskId : subtasksIDs)
+                epicSubtasks.add(subtasks.get(subtaskId));
+
+            return epicSubtasks;
+        }
+        return null;
     }
 
     @Override
@@ -110,12 +125,12 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
         Subtask subtask = subtasks.getOrDefault(id, null);
 
-        if (subtask == null)
+        if (subtask == null) {
             printIndexErrorToConsole(id);
-        else
+        } else {
             history.add(subtask);
-
-        System.out.println(subtask + "\n");
+            System.out.println(subtask + "\n");
+        }
         return subtask != null ? new Subtask(subtask) : null;
     }
 
@@ -261,11 +276,8 @@ public class InMemoryTaskManager implements TaskManager {
         return prioritizedList;
     }
 
-    // Насколько вообще хорошая идея хранить задачи в TreeSet таким образом? Я выбрал такой подход из-за простоты
-    // обновления задач.
-    // И еще вопрос. Стоит ли добавлять содержимое lib в git? По умолчанию IDEA это не делает.
     private Comparator<Integer> getPrioritizedIdsComparator() {
-        Comparator<Task> taskPrioriryComparator = Comparator
+        Comparator<Task> taskPriorityComparator = Comparator
                 .comparing(Task::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(Task::getName);
 
@@ -280,7 +292,7 @@ public class InMemoryTaskManager implements TaskManager {
             else if (task2 == null)
                 return -1;
 
-            return taskPrioriryComparator.compare(task1, task2);
+            return taskPriorityComparator.compare(task1, task2);
         };
     }
 
@@ -329,6 +341,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         for (Integer subtaskID : epic.getSubtasksIDs()) {
             subtasks.remove(subtaskID);
+            prioritizedTasks.remove(subtaskID);
             history.remove(subtaskID);
         }
         epics.remove(id);

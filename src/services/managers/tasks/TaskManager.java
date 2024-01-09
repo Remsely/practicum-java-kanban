@@ -19,6 +19,8 @@ public interface TaskManager {
 
     Epic getEpic(int id);
 
+    List<Subtask> getEpicSubtasks(int id);
+
     Subtask getSubtask(int id);
 
     int add(Task task);
