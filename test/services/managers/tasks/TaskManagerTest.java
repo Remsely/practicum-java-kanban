@@ -11,8 +11,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-abstract class TaskManagerTest<T extends TaskManager> {
-    protected T manager;
+abstract class TaskManagerTest {
+    protected TaskManager manager;
 
     @Test
     void shouldReturnCorrectListWhenTasksAreExist() {

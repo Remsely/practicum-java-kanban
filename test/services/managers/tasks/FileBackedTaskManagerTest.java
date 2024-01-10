@@ -12,17 +12,21 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
+class FileBackedTaskManagerTest extends TaskManagerTest {
     private static final String FILE_PATH = "test/backup/csv/test_manager.csv";
 
     @BeforeEach
     public void initManager() {
-        manager = new FileBackedTaskManager(FILE_PATH);
+        manager = getManager();
     }
 
     @AfterEach
     public void clearManager() {
         manager.clear();
+    }
+
+    protected TaskManager getManager() {
+        return new FileBackedTaskManager(FILE_PATH);
     }
 
     @Test
@@ -38,7 +42,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         Epic epic = new Epic("Epic 1", "Description");
         int epicId = manager.add(epic);
 
-        manager = new FileBackedTaskManager(FILE_PATH);
+        initManager();
 
         assertEquals(epic, manager.getEpic(epicId), "Эпик не добавлен.");
         assertEquals(1, manager.getEpics().size(), "Неверное количество эпиков.");
@@ -73,7 +77,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         List<Subtask> subtasks = manager.getSubtasks();
         List<Epic> epics = manager.getEpics();
 
-        manager = new FileBackedTaskManager(FILE_PATH);
+        initManager();
 
         assertEquals(tasks, manager.getTasks(), "Задачи не совпадают.");
         assertEquals(subtasks, manager.getSubtasks(), "Подзадачи не совпадают.");
