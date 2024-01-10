@@ -53,7 +53,7 @@ public class Task {
     }
 
     public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
+        this.startTime = startTime == null ? null : startTime.withSecond(0).withNano(0);
     }
 
     public int getDuration() {

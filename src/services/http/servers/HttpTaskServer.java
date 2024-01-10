@@ -144,7 +144,7 @@ public class HttpTaskServer {
             String response = gson.toJson(subtasks);
             sendText(h, response);
         } else {
-            System.out.println("Эпика с индексом " + id + "не существует!");
+            System.out.println("Эпика с индексом " + id + " не существует!");
             h.sendResponseHeaders(404, 0);
         }
     }
@@ -193,7 +193,7 @@ public class HttpTaskServer {
             String response = gson.toJson(task);
             sendText(h, response);
         } else {
-            System.out.println("Задачи с индексом " + id + "не существует!");
+            System.out.println("Задачи с индексом " + id + " не существует!");
             h.sendResponseHeaders(404, 0);
         }
     }
@@ -222,7 +222,7 @@ public class HttpTaskServer {
         if (manager.remove(id))
             h.sendResponseHeaders(200, 0);
         else {
-            System.out.println("Задачи с индексом " + id + "не существует!");
+            System.out.println("Задачи с индексом " + id + " не существует!");
             h.sendResponseHeaders(404, 0);
         }
     }
@@ -242,7 +242,7 @@ public class HttpTaskServer {
             String response = gson.toJson(subtask);
             sendText(h, response);
         } else {
-            System.out.println("Подзадачи с индексом " + id + "не существует!");
+            System.out.println("Подзадачи с индексом " + id + " не существует!");
             h.sendResponseHeaders(404, 0);
         }
     }
@@ -275,7 +275,7 @@ public class HttpTaskServer {
             String response = gson.toJson(epic);
             sendText(h, response);
         } else {
-            System.out.println("Эпика с индексом " + id + "не существует!");
+            System.out.println("Эпика с индексом " + id + " не существует!");
             h.sendResponseHeaders(404, 0);
         }
     }
@@ -285,10 +285,12 @@ public class HttpTaskServer {
         Epic epic = gson.fromJson(body, Epic.class);
 
         int taskId = epic.getId();
-        if (manager.getEpic(taskId) != null)
-            manager.update(taskId, epic);
-        else
-            manager.add(epic);
+        if (manager.getEpic(taskId) != null) {
+            System.out.println("Эпики не могут обновляться!");
+            h.sendResponseHeaders(405, 0);
+            return;
+        }
+        manager.add(epic);
 
         h.sendResponseHeaders(200, 0);
     }
@@ -312,7 +314,7 @@ public class HttpTaskServer {
 
     public void stop() {
         System.out.println("Отключение сервера на порту " + PORT + "...");
-        server.stop(1);
+        server.stop(0);
         System.out.println("Сервер отключен.");
     }
 }

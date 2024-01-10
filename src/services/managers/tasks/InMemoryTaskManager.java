@@ -20,7 +20,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected int currentTaskID;
 
     public InMemoryTaskManager() {
-        currentTaskID = 0;
+        currentTaskID = 1;
         tasks = new HashMap<>();
         epics = new HashMap<>();
         subtasks = new HashMap<>();
@@ -147,6 +147,7 @@ public class InMemoryTaskManager implements TaskManager {
             currentTaskID++;
 
             System.out.println(task + "\n");
+            System.out.println(prioritizedTasks);
             return task.getId();
         }
         printIntersectionErrorToConsole();
@@ -172,6 +173,7 @@ public class InMemoryTaskManager implements TaskManager {
             currentTaskID++;
 
             System.out.println(subtask + "\n");
+            System.out.println(prioritizedTasks);
             return subtask.getId();
         }
         printIntersectionErrorToConsole();
@@ -279,7 +281,8 @@ public class InMemoryTaskManager implements TaskManager {
     private Comparator<Integer> getPrioritizedIdsComparator() {
         Comparator<Task> taskPriorityComparator = Comparator
                 .comparing(Task::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(Task::getName);
+                .thenComparing(Task::getName)
+                .thenComparing(Task::getId);
 
         return (id1, id2) -> {
             Task task1 = tasks.getOrDefault(id1, subtasks.get(id1));
