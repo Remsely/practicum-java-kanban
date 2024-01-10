@@ -10,7 +10,8 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        KVServer.main(null);
+        KVServer server = new KVServer();
+        server.start();
 
         TaskManager manager = Managers.getDefault();
 
@@ -48,5 +49,7 @@ public class Main {
         manager2.clear();
 
         System.out.println(manager2);
+
+        server.stop();
     }
 }

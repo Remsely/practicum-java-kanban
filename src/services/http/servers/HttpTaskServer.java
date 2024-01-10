@@ -145,7 +145,7 @@ public class HttpTaskServer {
             sendText(h, response);
         } else {
             System.out.println("Эпика с индексом " + id + "не существует!");
-            h.sendResponseHeaders(400, 0); // В данной ситуации лучше возвращать 400 или 404?
+            h.sendResponseHeaders(404, 0);
         }
     }
 
@@ -194,7 +194,7 @@ public class HttpTaskServer {
             sendText(h, response);
         } else {
             System.out.println("Задачи с индексом " + id + "не существует!");
-            h.sendResponseHeaders(400, 0);
+            h.sendResponseHeaders(404, 0);
         }
     }
 
@@ -223,7 +223,7 @@ public class HttpTaskServer {
             h.sendResponseHeaders(200, 0);
         else {
             System.out.println("Задачи с индексом " + id + "не существует!");
-            h.sendResponseHeaders(400, 0);
+            h.sendResponseHeaders(404, 0);
         }
     }
 
@@ -243,7 +243,7 @@ public class HttpTaskServer {
             sendText(h, response);
         } else {
             System.out.println("Подзадачи с индексом " + id + "не существует!");
-            h.sendResponseHeaders(400, 0);
+            h.sendResponseHeaders(404, 0);
         }
     }
 
@@ -276,7 +276,7 @@ public class HttpTaskServer {
             sendText(h, response);
         } else {
             System.out.println("Эпика с индексом " + id + "не существует!");
-            h.sendResponseHeaders(400, 0);
+            h.sendResponseHeaders(404, 0);
         }
     }
 
@@ -308,5 +308,11 @@ public class HttpTaskServer {
         System.out.println("Запускаем HttpTaskServer на порту " + PORT);
         System.out.println("Открой в браузере http://localhost:" + PORT + "/");
         server.start();
+    }
+
+    public void stop() {
+        System.out.println("Отключение сервера на порту " + PORT + "...");
+        server.stop(1);
+        System.out.println("Сервер отключен.");
     }
 }
