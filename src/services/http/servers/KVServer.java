@@ -32,7 +32,7 @@ public class KVServer {
         try {
             System.out.println("\n/load");
             if (hasNoAuth(h)) {
-                System.out.println("Запрос неавторизован");
+                System.out.println("Запрос неавторизован, нужен параметр в query API_TOKEN со значением апи-ключа");
                 h.sendResponseHeaders(403, 0);
                 return;
             }
@@ -82,7 +82,7 @@ public class KVServer {
                 System.out.println("Значение для ключа " + key + " успешно обновлено!");
                 h.sendResponseHeaders(200, 0);
             } else {
-                System.out.println("/save ждёт POST-запрос, а получил: " + h.getRequestMethod());
+                System.out.println("/save ждёт POST-запрос, а получил " + h.getRequestMethod());
                 h.sendResponseHeaders(405, 0);
             }
         } finally {

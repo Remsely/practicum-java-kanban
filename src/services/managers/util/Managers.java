@@ -2,7 +2,7 @@ package services.managers.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import services.managers.adapters.LocalDateTimeAdapter;
+import services.managers.adapters.LocalDateTimeJsonAdapter;
 import services.managers.histories.HistoryManager;
 import services.managers.histories.InMemoryHistoryManager;
 import services.managers.tasks.FileBackedTaskManager;
@@ -26,7 +26,7 @@ public class Managers {
 
     public static Gson getGson() {
         return new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeJsonAdapter())
                 .create();
     }
 }

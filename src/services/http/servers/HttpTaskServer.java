@@ -103,7 +103,7 @@ public class HttpTaskServer {
                 handleDeleteTask(h, query);
                 break;
             default:
-                System.out.println("Неизвестный запрос для /task: " + h.getRequestMethod());
+                System.out.println("/task ждет GET, POST или DELETE-запрос, а получил: " + h.getRequestMethod());
                 h.sendResponseHeaders(405, 0);
                 break;
         }
@@ -122,7 +122,7 @@ public class HttpTaskServer {
                 handleDeleteTask(h, query);
                 break;
             default:
-                System.out.println("Неизвестный запрос для /task: " + h.getRequestMethod());
+                System.out.println("/subtask ждет GET, POST или DELETE-запрос, а получил: " + h.getRequestMethod());
                 h.sendResponseHeaders(405, 0);
                 break;
         }
@@ -130,6 +130,12 @@ public class HttpTaskServer {
 
     private void handleSubtaskEpic(HttpExchange h) throws IOException {
         final String query = h.getRequestURI().getQuery();
+
+        if (!"GET".equals(h.getRequestMethod())) {
+            System.out.println(h.getRequestURI().getPath() + " ждет GET-запрос, а получил: " + h.getRequestMethod());
+            h.sendResponseHeaders(405, 0);
+            return;
+        }
 
         if (query == null) {
             System.out.println(h.getRequestURI().getPath() + " ждет query, но не получил его");
@@ -162,7 +168,7 @@ public class HttpTaskServer {
                 handleDeleteTask(h, query);
                 break;
             default:
-                System.out.println("Неизвестный запрос для /task: " + h.getRequestMethod());
+                System.out.println("/epic ждет GET, POST или DELETE-запрос, а получил: " + h.getRequestMethod());
                 h.sendResponseHeaders(405, 0);
                 break;
         }
@@ -286,7 +292,7 @@ public class HttpTaskServer {
 
         int taskId = epic.getId();
         if (manager.getEpic(taskId) != null) {
-            System.out.println("Эпики не могут обновляться!");
+            System.out.println("Эпики не могут быть обновлены!");
             h.sendResponseHeaders(405, 0);
             return;
         }
