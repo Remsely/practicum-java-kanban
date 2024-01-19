@@ -38,6 +38,7 @@ public class HttpTaskManager extends FileBackedTaskManager {
         client.put("epics", jsonEpics);
         client.put("subtasks", jsonSubtasks);
         client.put("history", jsonHistory);
+        client.put("currentID", gson.toJson(currentTaskID));
     }
 
     private void backupAll() {
@@ -49,6 +50,7 @@ public class HttpTaskManager extends FileBackedTaskManager {
         }.getType());
         List<Integer> history = gson.fromJson(client.load("history"), new TypeToken<List<Integer>>() {
         }.getType());
+        String currentIdJson = client.load("currentID");
 
         if (tasks != null)
             backupTasks(tasks);
@@ -58,6 +60,8 @@ public class HttpTaskManager extends FileBackedTaskManager {
             backupTasks(subtasks);
         if (history != null)
             backupHistory(history);
+
+        currentTaskID = currentIdJson == null ? TASK_ID_START_VALUE : gson.fromJson(currentIdJson, Integer.class);
     }
 
     private void backupTasks(List<? extends Task> tasks) {

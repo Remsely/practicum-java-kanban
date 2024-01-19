@@ -149,16 +149,21 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private void createBackedTask(Task task) {
-        tasks.put(task.getId(), task);
+        final int id = task.getId();
+        tasks.put(id, task);
+        prioritizedTasks.put(id, task);
     }
 
     private void createBackedTask(Subtask subtask) {
-        subtasks.put(subtask.getId(), subtask);
+        final int subtaskID = subtask.getId();
 
-        int epicID = subtask.getEpicID();
+        subtasks.put(subtaskID, subtask);
+        prioritizedTasks.put(subtaskID, subtask);
+
+        final int epicID = subtask.getEpicID();
         Epic epic = epics.get(epicID);
 
-        epic.addSubtaskID(subtask.getId());
+        epic.addSubtaskID(subtaskID);
         epic.setStatus(calculateEpicStatus(epicID));
     }
 

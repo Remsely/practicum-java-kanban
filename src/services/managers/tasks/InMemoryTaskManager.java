@@ -17,10 +17,11 @@ public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Subtask> subtasks;
     protected final TreeMap<Integer, Task> prioritizedTasks;
     protected final HistoryManager history;
+    protected final int TASK_ID_START_VALUE = 1;
     protected int currentTaskID;
 
     public InMemoryTaskManager() {
-        currentTaskID = 1;
+        currentTaskID = TASK_ID_START_VALUE;
         tasks = new HashMap<>();
         epics = new HashMap<>();
         subtasks = new HashMap<>();
@@ -69,7 +70,7 @@ public class InMemoryTaskManager implements TaskManager {
         epics.clear();
         subtasks.clear();
         prioritizedTasks.clear();
-        currentTaskID = 0;
+        currentTaskID = TASK_ID_START_VALUE;
 
         for (Task task : history.getHistory())
             history.remove(task.getId());
