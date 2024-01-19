@@ -91,7 +91,7 @@ public class HttpTaskServer {
     }
 
     private void handleTask(HttpExchange h) throws IOException {
-        final String query = h.getRequestURI().getQuery();
+        final String query = getRequestQuery(h);
         switch (h.getRequestMethod()) {
             case "GET":
                 handleGetTask(h, query);
@@ -110,7 +110,7 @@ public class HttpTaskServer {
     }
 
     private void handleSubtask(HttpExchange h) throws IOException {
-        final String query = h.getRequestURI().getQuery();
+        final String query = getRequestQuery(h);
         switch (h.getRequestMethod()) {
             case "GET":
                 handleGetSubtask(h, query);
@@ -129,7 +129,7 @@ public class HttpTaskServer {
     }
 
     private void handleSubtaskEpic(HttpExchange h) throws IOException {
-        final String query = h.getRequestURI().getQuery();
+        final String query = getRequestQuery(h);
 
         if (!"GET".equals(h.getRequestMethod())) {
             System.out.println(h.getRequestURI().getPath() + " ждет GET-запрос, а получил: " + h.getRequestMethod());
@@ -156,7 +156,7 @@ public class HttpTaskServer {
     }
 
     private void handleEpic(HttpExchange h) throws IOException {
-        final String query = h.getRequestURI().getQuery();
+        final String query = getRequestQuery(h);
         switch (h.getRequestMethod()) {
             case "GET":
                 handleGetEpic(h, query);
@@ -205,7 +205,9 @@ public class HttpTaskServer {
     }
 
     private void handlePostTask(HttpExchange h) throws IOException {
-        String body = new String(h.getRequestBody().readAllBytes(), UTF_8);
+        String body = getRequestBody(h);
+
+        handleBodyEmptiness(body, h);
         Task task = gson.fromJson(body, Task.class);
 
         int taskId = task.getId();
@@ -254,7 +256,9 @@ public class HttpTaskServer {
     }
 
     private void handlePostSubtask(HttpExchange h) throws IOException {
-        String body = new String(h.getRequestBody().readAllBytes(), UTF_8);
+        String body = getRequestBody(h);
+
+        handleBodyEmptiness(body, h);
         Subtask subtask = gson.fromJson(body, Subtask.class);
 
         int taskId = subtask.getId();
@@ -287,7 +291,9 @@ public class HttpTaskServer {
     }
 
     private void handlePostEpic(HttpExchange h) throws IOException {
-        String body = new String(h.getRequestBody().readAllBytes(), UTF_8);
+        String body = getRequestBody(h);
+
+        handleBodyEmptiness(body, h);
         Epic epic = gson.fromJson(body, Epic.class);
 
         int taskId = epic.getId();
@@ -310,6 +316,21 @@ public class HttpTaskServer {
 
     private int getQueryId(String query) {
         return Integer.parseInt(query.substring("id=".length()));
+    }
+
+    private String getRequestBody(HttpExchange h) throws IOException {
+        return new String(h.getRequestBody().readAllBytes(), UTF_8);
+    }
+
+    private String getRequestQuery(HttpExchange h) {
+        return h.getRequestURI().getQuery();
+    }
+
+    private void handleBodyEmptiness(String body, HttpExchange h) throws IOException {
+        if (body.isEmpty()) {
+            System.out.println(h.getRequestURI().getPath() + " ожидает тело запроса, но не получил его.");
+            h.sendResponseHeaders(400, 0);
+        }
     }
 
     public void start() {
