@@ -58,42 +58,42 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public int add(Task task) {
-        int id = super.add(task);
+        final int id = super.add(task);
         save();
         return id;
     }
 
     @Override
     public int add(Subtask subtask) {
-        int id = super.add(subtask);
+        final int id = super.add(subtask);
         save();
         return id;
     }
 
     @Override
     public int add(Epic epic) {
-        int id = super.add(epic);
+        final int id = super.add(epic);
         save();
         return id;
     }
 
     @Override
     public boolean update(int id, Task task) {
-        boolean isUpdated = super.update(id, task);
+        final boolean isUpdated = super.update(id, task);
         save();
         return isUpdated;
     }
 
     @Override
     public boolean update(int id, Subtask subtask) {
-        boolean isUpdated = super.update(id, subtask);
+        final boolean isUpdated = super.update(id, subtask);
         save();
         return isUpdated;
     }
 
     @Override
     public boolean remove(int id) {
-        boolean isDeleted = super.remove(id);
+        final boolean isDeleted = super.remove(id);
         save();
         return isDeleted;
     }
@@ -161,7 +161,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         prioritizedTasks.put(subtaskID, subtask);
 
         final int epicID = subtask.getEpicID();
-        Epic epic = epics.get(epicID);
+        final Epic epic = epics.get(epicID);
 
         epic.addSubtaskID(subtaskID);
         epic.setStatus(calculateEpicStatus(epicID));

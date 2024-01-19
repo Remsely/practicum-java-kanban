@@ -143,7 +143,7 @@ public class HttpTaskServer {
             return;
         }
 
-        int id = getQueryId(query);
+        final int id = getQueryId(query);
         List<Subtask> subtasks = manager.getEpicSubtasks(id);
 
         if (subtasks != null) {
@@ -192,7 +192,7 @@ public class HttpTaskServer {
             return;
         }
 
-        int id = getQueryId(query);
+        final int id = getQueryId(query);
         Task task = manager.getTask(id);
 
         if (task != null) {
@@ -207,10 +207,14 @@ public class HttpTaskServer {
     private void handlePostTask(HttpExchange h) throws IOException {
         String body = getRequestBody(h);
 
-        handleBodyEmptiness(body, h);
-        Task task = gson.fromJson(body, Task.class);
+        if (body.isEmpty()) {
+            handleBodyEmptiness(h);
+            return;
+        }
 
-        int taskId = task.getId();
+        Task task = gson.fromJson(body, Task.class);
+        final int taskId = task.getId();
+
         if (manager.getTask(taskId) != null)
             manager.update(taskId, task);
         else
@@ -226,7 +230,8 @@ public class HttpTaskServer {
             return;
         }
 
-        int id = getQueryId(query);
+        final int id = getQueryId(query);
+
         if (manager.remove(id))
             h.sendResponseHeaders(200, 0);
         else {
@@ -243,7 +248,7 @@ public class HttpTaskServer {
             return;
         }
 
-        int id = getQueryId(query);
+        final int id = getQueryId(query);
         Subtask subtask = manager.getSubtask(id);
 
         if (subtask != null) {
@@ -258,14 +263,25 @@ public class HttpTaskServer {
     private void handlePostSubtask(HttpExchange h) throws IOException {
         String body = getRequestBody(h);
 
-        handleBodyEmptiness(body, h);
-        Subtask subtask = gson.fromJson(body, Subtask.class);
+        if (body.isEmpty()) {
+            handleBodyEmptiness(h);
+            return;
+        }
 
-        int taskId = subtask.getId();
-        if (manager.getSubtask(taskId) != null)
-            manager.update(taskId, subtask);
-        else
-            manager.add(subtask);
+        Subtask subtask = gson.fromJson(body, Subtask.class);
+        final int taskId = subtask.getId();
+
+        if (manager.getSubtask(taskId) != null) {
+            if(!manager.update(taskId, subtask)) {
+                System.out.println("Эпика для этой подзадачи не существует!");
+                h.sendResponseHeaders(400, 0);
+            }
+        } else {
+            if(manager.add(subtask) == -1) {
+                System.out.println("Эпика для этой подзадачи не существует!");
+                h.sendResponseHeaders(400, 0);
+            }
+        }
 
         h.sendResponseHeaders(200, 0);
     }
@@ -278,7 +294,7 @@ public class HttpTaskServer {
             return;
         }
 
-        int id = getQueryId(query);
+        final int id = getQueryId(query);
         Epic epic = manager.getEpic(id);
 
         if (epic != null) {
@@ -293,10 +309,14 @@ public class HttpTaskServer {
     private void handlePostEpic(HttpExchange h) throws IOException {
         String body = getRequestBody(h);
 
-        handleBodyEmptiness(body, h);
-        Epic epic = gson.fromJson(body, Epic.class);
+        if (body.isEmpty()) {
+            handleBodyEmptiness(h);
+            return;
+        }
 
-        int taskId = epic.getId();
+        Epic epic = gson.fromJson(body, Epic.class);
+        final int taskId = epic.getId();
+
         if (manager.getEpic(taskId) != null) {
             System.out.println("Эпики не могут быть обновлены!");
             h.sendResponseHeaders(405, 0);
@@ -326,11 +346,9 @@ public class HttpTaskServer {
         return h.getRequestURI().getQuery();
     }
 
-    private void handleBodyEmptiness(String body, HttpExchange h) throws IOException {
-        if (body.isEmpty()) {
-            System.out.println(h.getRequestURI().getPath() + " ожидает тело запроса, но не получил его.");
-            h.sendResponseHeaders(400, 0);
-        }
+    private void handleBodyEmptiness( HttpExchange h) throws IOException {
+        System.out.println(h.getRequestURI().getPath() + " ожидает тело запроса, но не получил его.");
+        h.sendResponseHeaders(400, 0);
     }
 
     public void start() {
@@ -340,7 +358,7 @@ public class HttpTaskServer {
     }
 
     public void stop() {
-        System.out.println("Отключение сервера на порту " + PORT + "...");
+        System.out.println("\nОтключение сервера на порту " + PORT + "...");
         server.stop(0);
         System.out.println("Сервер отключен.");
     }

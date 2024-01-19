@@ -112,7 +112,7 @@ public class KVServer {
     }
 
     public void stop() {
-        System.out.println("Отключение сервера на порту " + PORT + "...");
+        System.out.println("\nОтключение сервера на порту " + PORT + "...");
         server.stop(0);
         System.out.println("Сервер отключен.");
     }

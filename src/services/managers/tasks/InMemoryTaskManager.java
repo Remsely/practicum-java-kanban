@@ -94,7 +94,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Epic getEpic(int id) {
-        System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
+        System.out.println("\nПолучение эпика по индексу (id = " + id + ")...");
         Epic epic = epics.getOrDefault(id, null);
 
         if (epic == null) {
@@ -108,23 +108,26 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Subtask> getEpicSubtasks(int id) {
+        System.out.println("\nПолучение подзадач эпика с индексом (id = " + id + ")...");
         if (epics.containsKey(id)) {
-            Epic epic = epics.get(id);
+            final Epic epic = epics.get(id);
             List<Integer> subtasksIDs = epic.getSubtasksIDs();
             List<Subtask> epicSubtasks = new ArrayList<>();
 
             for (Integer subtaskId : subtasksIDs)
                 epicSubtasks.add(subtasks.get(subtaskId));
 
+            System.out.println(epicSubtasks);
             return epicSubtasks;
         }
+        printIndexErrorToConsole(id);
         return null;
     }
 
     @Override
     public Subtask getSubtask(int id) {
-        System.out.println("\nПолучение задачи по индексу (id = " + id + ")...");
-        Subtask subtask = subtasks.getOrDefault(id, null);
+        System.out.println("\nПолучение подзадачи по индексу (id = " + id + ")...");
+        final Subtask subtask = subtasks.getOrDefault(id, null);
 
         if (subtask == null) {
             printIndexErrorToConsole(id);
@@ -157,11 +160,16 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int add(Subtask subtask) {
-        System.out.println("\nСоздание задачи...");
+        System.out.println("\nСоздание подзадачи...");
 
         if (validateIntersectionsInTime(subtask.getStartTime(), subtask.getEndTime())) {
-            int epicID = subtask.getEpicID();
-            Epic epic = epics.get(epicID);
+            final int epicID = subtask.getEpicID();
+            final Epic epic = epics.get(epicID);
+
+            if (epic == null) {
+                printNoEpicForSubtaskError();
+                return -1;
+            }
 
             subtask.setId(currentTaskID);
             subtasks.put(currentTaskID, subtask);
@@ -183,7 +191,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int add(Epic epic) {
-        System.out.println("\nСоздание задачи...");
+        System.out.println("\nСоздание эпика...");
 
         epic.setId(currentTaskID);
         epics.put(currentTaskID++, epic);
@@ -218,8 +226,13 @@ public class InMemoryTaskManager implements TaskManager {
 
         if (validateIntersectionsInTime(subtask.getStartTime(), subtask.getEndTime())) {
             if (subtasks.containsKey(id)) {
-                int epicID = subtask.getEpicID();
-                Epic epic = epics.get(epicID);
+                final int epicID = subtask.getEpicID();
+                final Epic epic = epics.get(epicID);
+
+                if (epic == null) {
+                    printNoEpicForSubtaskError();
+                    return false;
+                }
 
                 subtask.setId(id);
 
@@ -280,7 +293,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private Comparator<Integer> getPrioritizedIdsComparator() {
-        Comparator<Task> taskPriorityComparator = Comparator
+        final Comparator<Task> taskPriorityComparator = Comparator
                 .comparing(Task::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(Task::getName)
                 .thenComparing(Task::getId);
@@ -341,7 +354,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void removeEpicByID(int id) {
-        Epic epic = epics.get(id);
+        final Epic epic = epics.get(id);
 
         for (Integer subtaskID : epic.getSubtasksIDs()) {
             subtasks.remove(subtaskID);
@@ -353,8 +366,8 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void removeSubtaskByID(int id) {
-        int epicID = subtasks.get(id).getEpicID();
-        Epic epic = epics.get(epicID);
+        final int epicID = subtasks.get(id).getEpicID();
+        final Epic epic = epics.get(epicID);
 
         epic.removeSubtask(id);
         epic.setStatus(calculateEpicStatus(epicID));
@@ -370,7 +383,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     private ArrayList<Subtask> getEpicSubtasksByID(int epicId) {
         ArrayList<Subtask> subtasks = new ArrayList<>();
-        Epic epic = epics.get(epicId);
+        final Epic epic = epics.get(epicId);
 
         for (Integer id : epic.getSubtasksIDs()) {
             subtasks.add(this.subtasks.get(id));
@@ -455,9 +468,15 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void printIntersectionErrorToConsole() {
-        System.out.println("===================================================================");
-        System.out.println("Ошибка обновления задачи (пересечение во времени с другой задачей)!");
-        System.out.println("===================================================================\n");
+        System.out.println("=============================================================================");
+        System.out.println("Ошибка обновления/изменения задачи (пересечение во времени с другой задачей)!");
+        System.out.println("=============================================================================\n");
+    }
+
+    private void printNoEpicForSubtaskError() {
+        System.out.println("=================================================");
+        System.out.println("Ошибка создания подзадачи (нет указанного эпика)!");
+        System.out.println("=================================================\n");
     }
 
     @Override

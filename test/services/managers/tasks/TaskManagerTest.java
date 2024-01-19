@@ -154,7 +154,7 @@ abstract class TaskManagerTest {
     @Test
     void shouldNotCreateSubtaskIfEpicIsNotExist() {
         Subtask subtask = new Subtask(1, "Subtask 1", "Description 1", TaskStatus.NEW);
-        assertThrows(NullPointerException.class, () -> manager.add(subtask));
+        assertEquals(-1, manager.add(subtask));
     }
 
     @Test
